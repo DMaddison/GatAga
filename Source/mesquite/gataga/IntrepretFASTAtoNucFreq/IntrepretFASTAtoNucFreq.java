@@ -237,7 +237,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					else if (blastOption==BLASTX)
 						NCBIUtil.nearestMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
 					NCBIUtil.processResultsFromBLAST(response.toString(), 1,  false, true, null, blastResult);
-					loglnEchoToStringBuffer("   BLAST search completed", blastReport);
+					if (blastOption==BLASTX)
+						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
+					else 
+						loglnEchoToStringBuffer("   BLAST search completed", blastReport);
 					if (blastResult.geteValue()<0.0) {
 						loglnEchoToStringBuffer("   No hits.", blastReport);
 					} else {
