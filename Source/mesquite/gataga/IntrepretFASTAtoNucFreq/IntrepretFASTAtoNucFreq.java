@@ -238,30 +238,34 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						NCBIUtil.nearestMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
 					NCBIUtil.processResultsFromBLAST(response.toString(), 1,  false, true, null, blastResult);
 					loglnEchoToStringBuffer("   BLAST search completed", blastReport);
-					loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(), blastReport);
-					loglnEchoToStringBuffer("   Accession: " + blastResult.getAccession(), blastReport);
-					loglnEchoToStringBuffer("   e-Value: " +blastResult.geteValue(), blastReport);
-					Associable associable = data.getTaxaInfo(true);
-					associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue());
-					associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore());
-					associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition());
-					associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession());
+					if (blastResult.geteValue()<0.0) {
+						loglnEchoToStringBuffer("   No hits.", blastReport);
+					} else {
+						loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(), blastReport);
+						loglnEchoToStringBuffer("   Accession: " + blastResult.getAccession(), blastReport);
+						loglnEchoToStringBuffer("   e-Value: " +blastResult.geteValue(), blastReport);
+						Associable associable = data.getTaxaInfo(true);
+						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue());
+						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore());
+						associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition());
+						associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession());
 
-					fastaBLASTResults.setLength(0);
-					NCBIUtil.processResultsFromBLAST(response.toString(), numHits,  false, true, accessionNumbers, null);
-					String[] accessionNumberArray = accessionNumbers.getFilledStrings();
-					if (accessionNumberArray!=null) {
-						loglnEchoToStringBuffer("   Accession numbers of top hits: ", blastReport);
-						for (int i=0; i<numHits; i++)
-							if (StringUtil.notEmpty(accessionNumberArray[i]))
-								loglnEchoToStringBuffer("        "+ accessionNumberArray[i], blastReport);
-					}
+						fastaBLASTResults.setLength(0);
+						NCBIUtil.processResultsFromBLAST(response.toString(), numHits,  false, true, accessionNumbers, null);
+						String[] accessionNumberArray = accessionNumbers.getFilledStrings();
+						if (accessionNumberArray!=null) {
+							loglnEchoToStringBuffer("   Accession numbers of top hits: ", blastReport);
+							for (int i=0; i<numHits && i<accessionNumberArray.length; i++)
+								if (StringUtil.notEmpty(accessionNumberArray[i]))
+									loglnEchoToStringBuffer("        "+ accessionNumberArray[i], blastReport);
+						}
 
-					if (blastOption==BLAST) {
-						if (storeBlastSequences && NCBIUtil.fetchGenBankSequencesFromAccessions(accessionNumberArray,  true, this, false,  fastaBLASTResults,  null)) {
-							if (StringUtil.notEmpty(pathForBLASTfiles)) {
-								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + sequence + "\n");
-								MesquiteFile.putFileContents(pathForBLASTfiles+sequenceName, fastaBLASTResults.toString(), true);
+						if (blastOption==BLAST) {
+							if (storeBlastSequences && NCBIUtil.fetchGenBankSequencesFromAccessions(accessionNumberArray,  true, this, false,  fastaBLASTResults,  null)) {
+								if (StringUtil.notEmpty(pathForBLASTfiles)) {
+									fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + sequence + "\n");
+									MesquiteFile.putFileContents(pathForBLASTfiles+sequenceName, fastaBLASTResults.toString(), true);
+								}
 							}
 						}
 					}
