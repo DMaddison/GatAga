@@ -231,36 +231,37 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 				if (length>=lowerBlastSequenceLength && (blastOption==BLAST|| blastOption==BLASTX)){
 					loglnEchoToStringBuffer("\nBLASTing  " + sequenceName, blastReport);
 					loglnEchoToStringBuffer("   Sequence length: "+ length, blastReport);
-					BLASTResults blastResult = new BLASTResults();
+					BLASTResults blastResult = new BLASTResults(numHits);
 					if (blastOption==BLAST)
-						NCBIUtil.nearestMatches("blastn", token, sequence.toString(), true, numHits, 300, response);
+						NCBIUtil.blastForMatches("blastn", token, sequence.toString(), true, numHits, 300, response);
 					else if (blastOption==BLASTX)
-						NCBIUtil.nearestMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
-					NCBIUtil.processResultsFromBLAST(response.toString(), 1,  false, true, null, blastResult);
+						NCBIUtil.blastForMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
+					blastResult.processResultsFromBLAST(response.toString(), false);
 					if (blastOption==BLASTX)
 						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
 					else 
 						loglnEchoToStringBuffer("   BLAST search completed", blastReport);
-					if (blastResult.geteValue()<0.0) {
+					if (blastResult.geteValue(1)<0.0) {
 						loglnEchoToStringBuffer("   No hits.", blastReport);
 					} else {
-						loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(), blastReport);
-						loglnEchoToStringBuffer("   Accession: " + blastResult.getAccession(), blastReport);
-						loglnEchoToStringBuffer("   e-Value: " +blastResult.geteValue(), blastReport);
-						Associable associable = data.getTaxaInfo(true);
-						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue());
-						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore());
-						associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition());
-						associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession());
+					/*	loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(1), blastReport);
+						loglnEchoToStringBuffer("   Accession: " + blastResult.getAccession(1), blastReport);
+						loglnEchoToStringBuffer("   e-Value: " +blastResult.geteValue(1), blastReport);
+					*/	Associable associable = data.getTaxaInfo(true);
+						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(1));
+						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(1));
+						associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(1));
+						associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(1));
 
 						fastaBLASTResults.setLength(0);
-						NCBIUtil.processResultsFromBLAST(response.toString(), numHits,  false, true, accessionNumbers, null);
-						String[] accessionNumberArray = accessionNumbers.getFilledStrings();
+						blastResult.processResultsFromBLAST(response.toString(), false);
+
+						String[] accessionNumberArray = blastResult.getAccessions();
 						if (accessionNumberArray!=null) {
-							loglnEchoToStringBuffer("   Accession numbers of top hits: ", blastReport);
+							loglnEchoToStringBuffer("   Top hits; Accession [eValue] Definition): ", blastReport);
 							for (int i=0; i<numHits && i<accessionNumberArray.length; i++)
 								if (StringUtil.notEmpty(accessionNumberArray[i]))
-									loglnEchoToStringBuffer("        "+ accessionNumberArray[i], blastReport);
+									loglnEchoToStringBuffer("        "+ accessionNumberArray[i] + "\t[" + blastResult.geteValue(i)+ "]\t" + blastResult.getDefinition(i), blastReport);
 						}
 
 						if (blastOption==BLAST) {
