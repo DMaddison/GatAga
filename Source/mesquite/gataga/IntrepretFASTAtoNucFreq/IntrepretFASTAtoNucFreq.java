@@ -30,6 +30,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	static int charCG = 6;
 	static int numChars = 7;
 
+	Blaster blasterTask;
+
 	Class[] acceptedClasses;
 
 	static final int DONTBLAST = 0;
@@ -41,6 +43,9 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 
 	int numHits = 5;
 
+	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
+		EmployeeNeed e = registerEmployeeNeed(Blaster.class, getName() + "  needs a Blast module.","");
+	}
 
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
@@ -81,6 +86,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	}
 	/*.................................................................................................................*/
 	public void readFileCore(Parser parser, MesquiteFile file, ContinuousData data, Taxa taxa, int lastTaxonNumber, ProgressIndicator progIndicator, String arguments) {
+		if (blasterTask==null)
+			return;
 		boolean wassave = data.saveChangeHistory;
 		data.saveChangeHistory = false;
 		Parser subParser = new Parser();
@@ -124,6 +131,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					pathForBLASTfiles+=MesquiteFile.fileSeparator;
 			}
 		}
+		boolean someBlastsDone = false;
 
 
 		data.setCharacterName(charLength, "length");
@@ -232,10 +240,16 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					loglnEchoToStringBuffer("\nBLASTing  " + sequenceName, blastReport);
 					loglnEchoToStringBuffer("   Sequence length: "+ length, blastReport);
 					BLASTResults blastResult = new BLASTResults(numHits);
-					if (blastOption==BLAST)
+					if (blastOption==BLASTX)
+						blasterTask.blastForMatches("blastx", sequenceName, sequence.toString(), true, numHits, 300, response);
+					else if (blastOption==BLAST)
+						blasterTask.blastForMatches("blastn", sequenceName, sequence.toString(), true, numHits, 300, response);
+					someBlastsDone = true;
+			/*		if (blastOption==BLAST)
 						NCBIUtil.blastForMatches("blastn", token, sequence.toString(), true, numHits, 300, response);
 					else if (blastOption==BLASTX)
 						NCBIUtil.blastForMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
+			*/
 					blastResult.processResultsFromBLAST(response.toString(), false);
 					if (blastOption==BLASTX)
 						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
@@ -307,7 +321,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			else
 				data.deleteCharacters(numFilledChars+1, data.getNumChars()-numFilledChars, true);   // add a character if needed
 
-		if (StringUtil.notEmpty(blastReport.toString())) {
+		if (someBlastsDone && StringUtil.notEmpty(blastReport.toString())) {
 			if (blastOption==BLAST|| blastOption==BLASTX){
 				loglnEchoToStringBuffer("\n============\n", blastReport);
 			}
@@ -348,8 +362,15 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 
 	/*.................................................................................................................*/
 	public void readFile(MesquiteProject mf, MesquiteFile file, String arguments) {
-		if (!queryOptions()) 
-			return;
+		if (blasterTask==null)
+			blasterTask = (Blaster)hireEmployee(Blaster.class, "Blaster (for " + getName() + ")"); 
+		if (blasterTask!=null)
+			if (!blasterTask.initialize())
+				return;
+		
+		if (!MesquiteThread.isScripting())
+			if (!queryOptions()) 
+				return;
 		incrementMenuResetSuppression();
 		ProgressIndicator progIndicator = new ProgressIndicator(mf,"Importing File "+ file.getName(), file.existingLength());
 		progIndicator.start();

@@ -1,36 +1,135 @@
 package mesquite.gataga.LocalBlaster;
 
-import mesquite.categ.lib.DNAData;
-import mesquite.lib.MesquiteModule;
-import mesquite.molec.lib.Blaster;
-import mesquite.molec.lib.NCBIUtil;
+import mesquite.lib.*;
+import mesquite.molec.lib.*;
 
-public class LocalBlaster extends Blaster {
+public class LocalBlaster extends Blaster implements ShellScriptWatcher {
+	boolean preferencesSet = false;
+	String programOptions = "" ;
+	String databases = "nt" ;
+	int numThreads = 1;
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
+		programOptions = "";
+		loadPreferences();
+		return true;
+	}
+	
+	/*
+	 -evalue 0.01
+	 */
+	
+	/*.................................................................................................................*/
+	public void processSingleXMLPreference (String tag, String content) {
+		 if ("programOptions".equalsIgnoreCase(tag))
+				programOptions = StringUtil.cleanXMLEscapeCharacters(content);
+		 else if ("databases".equalsIgnoreCase(tag))
+			 databases = StringUtil.cleanXMLEscapeCharacters(content);
+		else if ("numThreads".equalsIgnoreCase(tag))
+			numThreads = MesquiteInteger.fromString(content);
+
+		preferencesSet = true;
+	}
+	/*.................................................................................................................*/
+	public String preparePreferencesForXML () {
+		StringBuffer buffer = new StringBuffer(200);
+		StringUtil.appendXMLTag(buffer, 2, "programOptions", programOptions);  
+		StringUtil.appendXMLTag(buffer, 2, "databases", databases);  
+		StringUtil.appendXMLTag(buffer, 2, "numThreads", numThreads);  
+
+		preferencesSet = true;
+		return buffer.toString();
+	}
+
+	public boolean initialize() {
+		if (!MesquiteThread.isScripting())
+			return queryOptions();
+		return true;
+	}
+	
+	/*.................................................................................................................*/
+	public boolean queryOptions() {
+		MesquiteInteger buttonPressed = new MesquiteInteger(1);
+		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Local Blast Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		dialog.addLabel("Local Blast Options");
+
+		SingleLineTextField databasesField = dialog.addTextField("Databases to search:", databases, 26, true);
+		SingleLineTextField programOptionsField = dialog.addTextField("Additional Blast options:", programOptions, 26, true);
+		IntegerField numThreadsField = dialog.addIntegerField("Number of processor threads to use:", numThreads,20, 1, Integer.MAX_VALUE);
+		
+		dialog.completeAndShowDialog(true);
+		if (buttonPressed.getValue()==0)  {
+			databases = databasesField.getText();
+			programOptions = programOptionsField.getText();
+			numThreads = numThreadsField.getValue();
+			storePreferences();
+		}
+		dialog.dispose();
+		return (buttonPressed.getValue()==0);
+	}
+
+	/*.................................................................................................................*/
+	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime, StringBuffer blastResponse) {
+		getProject().incrementProjectWindowSuppression();
+		
+		String unique = MesquiteTrunk.getUniqueIDBase();
+		String rootDir = createSupportDirectory() + MesquiteFile.fileSeparator;  
+		String fileName = "sequenceToSearch" + MesquiteFile.massageStringToFilePathSafe(unique) + ".fa";   
+		String filePath = rootDir +  fileName;
+
+		StringBuffer fileBuffer = new StringBuffer();
+		fileBuffer.append(NCBIUtil.createFastaString(sequenceName, sequence, isNucleotides));
+		MesquiteFile.putFileContents(filePath, fileBuffer.toString(), true);
+
+		String runningFilePath = rootDir + "running" + MesquiteFile.massageStringToFilePathSafe(unique);
+		String outFileName = "blastResults" + MesquiteFile.massageStringToFilePathSafe(unique);
+		String outFilePath = rootDir + outFileName;
+
+		StringBuffer shellScript = new StringBuffer(1000);
+		shellScript.append(ShellScriptUtil.getChangeDirectoryCommand(rootDir));
+		shellScript.append(blastType + "  -query " + fileName);
+		shellScript.append(" -db "+databases);
+		if (numThreads>1)
+			shellScript.append("  -num_threads " + numThreads);
+		shellScript.append(" -out " + outFileName + " -outfmt 5");		
+		shellScript.append(" -max_target_seqs " + numHits + " -num_alignments " + numHits + " -num_descriptions " + numHits);		
+		shellScript.append(" " + programOptions + StringUtil.lineEnding());
+
+		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
+		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
+
+		MesquiteTimer timer = new MesquiteTimer();
+		timer.start();
+		
+		
+		boolean success = ShellScriptUtil.executeAndWaitForShell(scriptPath, runningFilePath, null, true, getName(),null,null, this);
+
+		if (success){
+			String results = MesquiteFile.getFileContentsAsString(outFilePath);
+			if (blastResponse!=null){
+				blastResponse.setLength(0);
+				blastResponse.append(results);
+			}
+		}
+		deleteSupportDirectory();
+		getProject().decrementProjectWindowSuppression();
+	}	
+
+	/*.................................................................................................................*/
+	public boolean isSubstantive(){
 		return true;
 	}
 
-	public void initialize() {
-	}
-
-	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime, StringBuffer blastResponse) {
-		//NCBIUtil.blastForMatches(blastType, sequenceName, sequence, isNucleotides, numHits, 300, blastResponse);
-	}
-
-	public String fetchGenBankSequencesFromAccessions(String[] accessionNumbers, boolean isNucleotides, MesquiteModule mod, boolean writeLog, StringBuffer report) {
-		//return NCBIUtil.fetchGenBankSequencesFromAccessions(accessionNumbers, isNucleotides, mod, writeLog, report);	
-		return null;
-	}
-
-	public String fetchTaxonomyList(String accession, boolean isNucleotides, boolean writeLog, StringBuffer report) {
-		return null;
-		//return NCBIUtil.fetchTaxonomyList(accession, isNucleotides, writeLog, report);
-	}
-
-
 	public String getName() {
 		return "Blast Local Server";
+	}
+
+	public String getExplanation() {
+		return "Blasts a blast database on the same computer as Mesquite.";
+	}
+
+	public boolean continueShellProcess(Process proc) {
+		return true;
 	}
 
 

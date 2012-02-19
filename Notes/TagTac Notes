@@ -1,3 +1,5 @@
 Augustus Search
 
 BLAST search on import
+
+problem with eValue in NOTES block because of exponential notation
