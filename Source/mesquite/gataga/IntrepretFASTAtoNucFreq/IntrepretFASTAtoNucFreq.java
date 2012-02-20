@@ -272,10 +272,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 
 						String[] accessionNumberArray = blastResult.getAccessions();
 						if (accessionNumberArray!=null) {
-							loglnEchoToStringBuffer("   Top hits; Accession [eValue] Definition): ", blastReport);
-							for (int i=0; i<numHits && i<accessionNumberArray.length; i++)
-								if (StringUtil.notEmpty(accessionNumberArray[i]))
-									loglnEchoToStringBuffer("        "+ accessionNumberArray[i] + "\t[" + blastResult.geteValue(i)+ "]\t" + blastResult.getDefinition(i), blastReport);
+							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
 						}
 
 						if (blastOption==BLAST) {
