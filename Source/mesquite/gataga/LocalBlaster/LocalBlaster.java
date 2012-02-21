@@ -8,9 +8,11 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	String programOptions = "" ;
 	String databases = "nt" ;
 	int numThreads = 1;
+	MesquiteTimer timer = new MesquiteTimer();
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		programOptions = "";
+		timer.start();
 		loadPreferences();
 		return true;
 	}
@@ -70,6 +72,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 	/*.................................................................................................................*/
 	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime, StringBuffer blastResponse) {
+		timer.timeSinceLast();
 		getProject().incrementProjectWindowSuppression();
 		
 		String unique = MesquiteTrunk.getUniqueIDBase();
@@ -87,13 +90,15 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 		StringBuffer shellScript = new StringBuffer(1000);
 		shellScript.append(ShellScriptUtil.getChangeDirectoryCommand(rootDir));
-		shellScript.append(blastType + "  -query " + fileName);
-		shellScript.append(" -db "+databases);
+		String blastCommand = blastType + "  -query " + fileName;
+		blastCommand+= " -db "+databases;
 		if (numThreads>1)
-			shellScript.append("  -num_threads " + numThreads);
-		shellScript.append(" -out " + outFileName + " -outfmt 5");		
-		shellScript.append(" -max_target_seqs " + numHits + " -num_alignments " + numHits + " -num_descriptions " + numHits);		
-		shellScript.append(" " + programOptions + StringUtil.lineEnding());
+			blastCommand+="  -num_threads " + numThreads;
+		blastCommand+=" -out " + outFileName + " -outfmt 5";		
+		blastCommand+=" -max_target_seqs " + numHits + " -num_alignments " + numHits + " -num_descriptions " + numHits;		
+		blastCommand+=" " + programOptions + StringUtil.lineEnding();
+		shellScript.append(blastCommand);
+		logln("blast command: \n" + blastCommand);
 
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
@@ -113,6 +118,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		}
 		deleteSupportDirectory();
 		getProject().decrementProjectWindowSuppression();
+		logln("Blast completed in " +timer.timeSinceLastInSeconds()+" seconds");
 	}	
 
 	/*.................................................................................................................*/
