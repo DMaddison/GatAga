@@ -270,14 +270,14 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						fastaBLASTResults.setLength(0);
 						blastResult.processResultsFromBLAST(response.toString(), false);
 
-						String[] accessionNumberArray = blastResult.getAccessions();
-						if (accessionNumberArray!=null) {
+						String[] IDs = blastResult.getIDs();
+						if (IDs!=null) {
 							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
 						}
 
 						if (blastOption==BLAST) {
 							if (storeBlastSequences) {
-								String fasta = NCBIUtil.fetchGenBankSequencesFromAccessions(accessionNumberArray,  true, this, false,  fastaBLASTResults,  null);
+								String fasta = NCBIUtil.fetchGenBankSequencesFromIDs(IDs,  true, this, false,  fastaBLASTResults,  null);
 								if (StringUtil.notEmpty(fasta)) {
 									fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + sequence + "\n");
 									MesquiteFile.putFileContents(pathForBLASTfiles+sequenceName, fastaBLASTResults.toString(), true);
