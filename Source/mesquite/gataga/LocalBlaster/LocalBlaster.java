@@ -71,7 +71,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	}
 
 	/*.................................................................................................................*/
-	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime, StringBuffer blastResponse) {
+	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime, StringBuffer blastResponse, boolean writeCommand) {
 		timer.timeSinceLast();
 		getProject().incrementProjectWindowSuppression();
 		
@@ -98,7 +98,8 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		blastCommand+=" -max_target_seqs " + numHits + " -num_alignments " + numHits + " -num_descriptions " + numHits;		
 		blastCommand+=" " + programOptions + StringUtil.lineEnding();
 		shellScript.append(blastCommand);
-		logln("blast command: \n" + blastCommand);
+		if (writeCommand)
+			logln("blast command: \n" + blastCommand);
 
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
