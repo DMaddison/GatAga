@@ -40,6 +40,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	int blastOption = DONTBLAST;
 	int lowerBlastSequenceLength = 1000;
 	boolean saveTopHits = false;
+	double eValueCutoff = 0.0000000000001;
 	int numHits = 5;
 
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
@@ -62,6 +63,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			lowerBlastSequenceLength = MesquiteInteger.fromString(content);
 		else if ("numHits".equalsIgnoreCase(tag))
 			numHits = MesquiteInteger.fromString(content);		
+		else if ("eValueCutoff".equalsIgnoreCase(tag))
+			eValueCutoff = MesquiteDouble.fromString(content);		
 	}
 	/*.................................................................................................................*/
 	public String preparePreferencesForXML () {
@@ -70,6 +73,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		StringUtil.appendXMLTag(buffer, 2, "blastOption", blastOption);  
 		StringUtil.appendXMLTag(buffer, 2, "lowerBlastSequenceLength", lowerBlastSequenceLength);  
 		StringUtil.appendXMLTag(buffer, 2, "numHits", numHits);  
+		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
 		return buffer.toString();
 	}
 	/*.................................................................................................................*/
@@ -270,12 +274,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					else if (blastOption==BLASTX)
 						NCBIUtil.blastForMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
 					 */
-					blastResult.processResultsFromBLAST(response.toString(), false);
+					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 					if (blastOption==BLASTX)
 						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
 					else 
 						loglnEchoToStringBuffer("   BLAST search completed", blastReport);
-					if (blastResult.geteValue(1)<0.0) {
+					if (blastResult.geteValue(1)<0.0 || blastResult.geteValue(1)>eValueCutoff) {
 						loglnEchoToStringBuffer("   No hits.", blastReport);
 					} else {
 						/*	loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(1), blastReport);
@@ -288,7 +292,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						 associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(1));
 
 						 fastaBLASTResults.setLength(0);
-						 blastResult.processResultsFromBLAST(response.toString(), false);
+						 blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 
 						 String[] IDs = blastResult.getIDs();
 						 if (IDs!=null) {
@@ -298,6 +302,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						 if (storeBlastSequences) {
 							 if (blastOption==BLASTX)
 								 IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
+							 
 
 							 String fasta = NCBIUtil.fetchGenBankSequencesFromIDs(IDs,  true, this, false,  fastaBLASTResults,  null);
 							 if (StringUtil.notEmpty(fasta)) {
@@ -366,12 +371,14 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		RadioButtons blastRadioButtons= dialog.addRadioButtons(new String[] {"don't BLAST", "BLAST", "BLASTX"}, blastOption);
 		IntegerField blastLowerLengthField = dialog.addIntegerField("Lower length limit of sequences to be BLASTed:", lowerBlastSequenceLength, 10, 10, Integer.MAX_VALUE);
 		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", numHits, 8, 1, Integer.MAX_VALUE);
+		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
 		Checkbox saveTopHitsBox = dialog.addCheckBox("Save top hits to FASTA files", saveTopHits);
 
 		dialog.completeAndShowDialog(true);
 		if (buttonPressed.getValue()==0)  {
 			blastOption = blastRadioButtons.getValue();
 			lowerBlastSequenceLength = blastLowerLengthField.getValue();
+			eValueCutoff = eValueCutoffField.getValue();
 			numHits = numHitsField.getValue();
 			saveTopHits = saveTopHitsBox.getState();
 			storePreferences();
