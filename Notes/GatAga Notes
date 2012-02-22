@@ -1,5 +1,8 @@
 Augustus Search
 
 BLAST search on import
+	- name fasta files with eValue option
+
+taxon name: strip gb code from it
 
 problem with eValue in NOTES block because of exponential notation

@@ -1,5 +1,7 @@
 package mesquite.gataga.LocalBlaster;
 
+import java.awt.Checkbox;
+
 import mesquite.lib.*;
 import mesquite.molec.lib.*;
 
@@ -9,6 +11,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	String databases = "nt" ;
 	int numThreads = 1;
 	MesquiteTimer timer = new MesquiteTimer();
+	boolean useIDInDefinition = false;
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		programOptions = "";
@@ -29,6 +32,8 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			 databases = StringUtil.cleanXMLEscapeCharacters(content);
 		else if ("numThreads".equalsIgnoreCase(tag))
 			numThreads = MesquiteInteger.fromString(content);
+		else if ("useIDInDefinition".equalsIgnoreCase(tag))
+			useIDInDefinition = MesquiteBoolean.fromTrueFalseString(content);
 
 		preferencesSet = true;
 	}
@@ -38,6 +43,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		StringUtil.appendXMLTag(buffer, 2, "programOptions", programOptions);  
 		StringUtil.appendXMLTag(buffer, 2, "databases", databases);  
 		StringUtil.appendXMLTag(buffer, 2, "numThreads", numThreads);  
+		StringUtil.appendXMLTag(buffer, 2, "useIDInDefinition", useIDInDefinition);  
 
 		preferencesSet = true;
 		return buffer.toString();
@@ -57,6 +63,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 		SingleLineTextField databasesField = dialog.addTextField("Databases to search:", databases, 26, true);
 		SingleLineTextField programOptionsField = dialog.addTextField("Additional Blast options:", programOptions, 26, true);
+		Checkbox useIDInDefinitionBox = dialog.addCheckBox("Obtain GenBank ID from Definition", useIDInDefinition);
 		IntegerField numThreadsField = dialog.addIntegerField("Number of processor threads to use:", numThreads,20, 1, Integer.MAX_VALUE);
 		
 		dialog.completeAndShowDialog(true);
@@ -64,6 +71,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			databases = databasesField.getText();
 			programOptions = programOptionsField.getText();
 			numThreads = numThreadsField.getValue();
+			useIDInDefinition = useIDInDefinitionBox.getState();
 			storePreferences();
 		}
 		dialog.dispose();
@@ -71,7 +79,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	}
 
 	/*.................................................................................................................*/
-	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime, StringBuffer blastResponse, boolean writeCommand) {
+	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime,  double eValueCutoff, StringBuffer blastResponse, boolean writeCommand) {
 		timer.timeSinceLast();
 		getProject().incrementProjectWindowSuppression();
 		
@@ -94,6 +102,8 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		blastCommand+= " -db "+databases;
 		if (numThreads>1)
 			blastCommand+="  -num_threads " + numThreads;
+//		if (eValueCutoff>=0.0)
+//			blastCommand+="  -evalue " + eValueCutoff;
 		blastCommand+=" -out " + outFileName + " -outfmt 5";		
 		blastCommand+=" -max_target_seqs " + numHits + " -num_alignments " + numHits + " -num_descriptions " + numHits;		
 		blastCommand+=" " + programOptions + StringUtil.lineEnding();
@@ -121,6 +131,15 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		getProject().decrementProjectWindowSuppression();
 		logln("Blast completed in " +timer.timeSinceLastInSeconds()+" seconds");
 	}	
+	
+	/*.................................................................................................................*/
+	public  void postProcessingCleanup(BLASTResults blastResult){
+		if (useIDInDefinition){
+			blastResult.setIDFromDefinition("|", 2);
+			blastResult.setAccessionFromDefinition("|", 4);
+		}
+	}
+
 
 	/*.................................................................................................................*/
 	public boolean isSubstantive(){

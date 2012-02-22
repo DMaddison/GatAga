@@ -3,6 +3,8 @@
 package mesquite.gataga.TaxonListGBTaxonomy;
 /*~~  */
 
+import java.awt.Checkbox;
+
 import mesquite.cont.lib.*;
 import mesquite.lists.lib.*;
 import mesquite.lib.characters.*;
@@ -21,6 +23,12 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 	Taxa currentTaxa = null;
 	MCharactersDistribution observedStates =null;
 	CharacterData data = null;
+	MesquiteMenuItemSpec selectMenuItem;
+	boolean wholeWord = false;
+	boolean caseSensitive = false;
+	MesquiteTable table = null;
+
+	
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		matrixSourceTask = (MatrixSourceCoord)hireCompatibleEmployee(MatrixSourceCoord.class, ContinuousState.class, "Source of character matrix (for " + getName() + ")"); 
@@ -44,6 +52,7 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 		observedStates = null;
 		super.employeeParametersChanged(employee, source, notification);
 	}
+	/*.................................................................................................................*/
 	/** Called to provoke any necessary initialization.  This helps prevent the module's initialization queries to the user from
    	happening at inopportune times (e.g., while a long chart calculation is in mid-progress)*/
 	public void initialize(Taxa taxa){
@@ -55,12 +64,66 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 
 	/*.................................................................................................................*/
 	public void setTableAndTaxa(MesquiteTable table, Taxa taxa){
+		deleteMenuItem(selectMenuItem);
+		selectMenuItem = addMenuItem("Select by taxonomy search...", makeCommand("select",  this));
 		if (this.currentTaxa != null)
 			this.currentTaxa.removeListener(this);
 		this.currentTaxa = taxa;
 		if (this.currentTaxa != null)
 			this.currentTaxa.addListener(this);
+		this.table = table;
 }
+	/*.................................................................................................................*/
+	public Object doCommand(String commandName, String arguments, CommandChecker checker) {
+		if (checker.compare(this.getClass(), "Selects taxonomy information that contains the search word", "[]", commandName, "select")) {
+			selectBySearch();
+		}
+		else
+			return  super.doCommand(commandName, arguments, checker);
+		return null;
+	}
+	
+	/*.................................................................................................................*/
+	public void selectBasedOnSearchWord(String searchWord) {
+		if (MesquiteThread.isScripting())
+			return;
+		if (table==null || data==null || StringUtil.blank(searchWord))
+			return;
+		Associable associable = data.getTaxaInfo(true);
+		for (int it=0; it<data.getNumTaxa(); it++) {
+			String s = (String)associable.getAssociatedObject(NCBIUtil.TAXONOMY, it);
+			if (StringUtil.notEmpty(s)){
+				if (StringUtil.indexOf(s,searchWord, caseSensitive, wholeWord)>=0) {
+					table.selectRow(it);
+					table.redrawFullRow(it);
+				}
+			}
+		}
+	}
+	/*.................................................................................................................*/
+	public boolean selectBySearch() {
+		MesquiteInteger buttonPressed = new MesquiteInteger(1);
+		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Select by taxonomy search",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		dialog.addLabel("Select by taxonomy search");
+
+		SingleLineTextField searchField = dialog.addTextField("", 30);
+		Checkbox wholeWordBox = dialog.addCheckBox("whole word", wholeWord);
+		Checkbox respectCaseBox = dialog.addCheckBox("case sensitive", caseSensitive);
+
+		dialog.completeAndShowDialog(true);
+		if (buttonPressed.getValue()==0)  {
+			String searchWord = searchField.getText();
+			wholeWord = wholeWordBox.getState();
+			caseSensitive = respectCaseBox.getState();
+			if (table!=null) {
+				selectBasedOnSearchWord(searchWord);
+			}
+			storePreferences();
+		}
+		dialog.dispose();
+		return (buttonPressed.getValue()==0);
+	}
+	/*.................................................................................................................*/
 	/*.................................................................................................................*/
 	public void dispose() {
 		super.dispose();
@@ -71,9 +134,6 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 		outputInvalid();
 		parametersChanged(notification);
 	}
-	public String getTitle() {
-		return "Top BLAST Hit (Taxonomy)";
-	}
 	public String getStringForTaxon(int ic){
 		
 		if (currentTaxa!=null) {
@@ -82,7 +142,7 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 			}
 			if (observedStates==null)
 				return null;
-			CharacterData data = observedStates.getParentData();
+			data = observedStates.getParentData();
 			
 			Associable associable = data.getTaxaInfo(true);
 			String s = (String)associable.getAssociatedObject(NCBIUtil.TAXONOMY, ic);
@@ -103,6 +163,10 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 	/*...............................................................................................................*/
 	public String getWidestString(){
 		return "88888888888888888  ";
+	}
+	/*...............................................................................................................*/
+	public String getTitle() {
+		return "Top BLAST Hit (Taxonomy)";
 	}
 	/*.................................................................................................................*/
 	public String getName() {
