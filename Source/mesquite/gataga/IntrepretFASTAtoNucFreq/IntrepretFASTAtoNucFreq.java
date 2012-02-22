@@ -376,7 +376,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 
 		data.saveChangeHistory = wassave;
 		data.resetChangedSinceSave();
-
+		
+		abort=false;  // for this importer, save whatever you have read in
 		finishImport(progIndicator, file, abort);
 
 	}
