@@ -44,7 +44,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	double eValueCutoff = 10.0;
 	double bestBLASTSearchesCutoff = 0.0;
 	int numHits = 5;
-	
+
 	boolean fetchTaxonomy = false;
 
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
@@ -195,7 +195,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 				pathForResavedFile = MesquiteFile.saveFileAsDialog("Save Modified FASTA file", fileNameBuffer);
 			}
 		}
-		
+
 
 		data.setCharacterName(charLength, "length");
 		data.setCharacterName(charA, "A");
@@ -309,11 +309,6 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					else if (blastOption==BLAST)
 						blasterTask.blastForMatches("blastn", sequenceName, sequence.toString(), true, numHits, 300, eValueCutoff, response,  taxonNumber==1);
 					someBlastsDone = true;
-					/*		if (blastOption==BLAST)
-						NCBIUtil.blastForMatches("blastn", token, sequence.toString(), true, numHits, 300, response);
-					else if (blastOption==BLASTX)
-						NCBIUtil.blastForMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
-					 */
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 					blasterTask.postProcessingCleanup(blastResult);
 
@@ -326,43 +321,39 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					} else if (blastResult.geteValue(1)>eValueCutoff) {
 						loglnEchoToStringBuffer("   No acceptable hits.", blastReport);
 					} else {
-						/*	loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(1), blastReport);
-						loglnEchoToStringBuffer("   Accession: " + blastResult.getAccession(1), blastReport);
-						loglnEchoToStringBuffer("   e-Value: " +blastResult.geteValue(1), blastReport);
-						 */	Associable associable = data.getTaxaInfo(true);
-						 associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
-						 associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
-						 associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
-						 associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(0));
-						 sequenceNameSuffix = " [top hit: " + StringUtil.getItem(blastResult.getDefinition(0), "|",5) + ", eValue=" + blastResult.geteValue(0) +  "]";
+						Associable associable = data.getTaxaInfo(true);
+						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
+						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
+						associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
+						associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(0));
+						sequenceNameSuffix = " [top hit: " + StringUtil.getItem(blastResult.getDefinition(0), "|",5) + ", eValue=" + blastResult.geteValue(0) +  "]";
 
-						 fastaBLASTResults.setLength(0);
-						 // blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
+						fastaBLASTResults.setLength(0);
 
-						 String[] IDs = blastResult.getIDs();
-						 if (IDs!=null) {
-							 loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
-						 }
+						String[] IDs = blastResult.getIDs();
+						if (IDs!=null) {
+							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
+						}
 
-						 if (storeBlastSequences) {
-							 if (blastOption==BLASTX)
-								 IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
+						if (storeBlastSequences) {
+							if (blastOption==BLASTX)
+								IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
 
 
-							 String fasta = NCBIUtil.fetchGenBankSequencesFromIDs(IDs,  true, this, false,  fastaBLASTResults,  null);
-							 if (StringUtil.notEmpty(fasta)) {
-								 fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
-								 String fileName = pathForBLASTfiles+sequenceName;
-								 if (blastResult.geteValue(0)<=bestBLASTSearchesCutoff)
-									 fileName = pathForBestBLASTfiles+sequenceName;
-								 MesquiteFile.putFileContents(fileName, fastaBLASTResults.toString(), true);
-							 }
+							String fasta = NCBIUtil.fetchGenBankSequencesFromIDs(IDs,  true, this, false,  fastaBLASTResults,  null);
+							if (StringUtil.notEmpty(fasta)) {
+								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
+								String fileName = pathForBLASTfiles+sequenceName;
+								if (blastResult.geteValue(0)<=bestBLASTSearchesCutoff)
+									fileName = pathForBestBLASTfiles+sequenceName;
+								MesquiteFile.putFileContents(fileName, fastaBLASTResults.toString(), true);
+							}
 
-						 }
-						 if (fetchTaxonomy) {
-							 String tax = NCBIUtil.fetchTaxonomyFromSequenceID(blastResult.getID(1), true, true, null);
-							 associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
-						 }
+						}
+						if (fetchTaxonomy) {
+							String tax = NCBIUtil.fetchTaxonomyFromSequenceID(blastResult.getID(1), true, true, null);
+							associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
+						}
 					}
 					accessionNumbers.deassignArray();
 
@@ -405,11 +396,11 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			else
 				data.deleteCharacters(numFilledChars+1, data.getNumChars()-numFilledChars, true);   // add a character if needed
 
-	
+
 
 		data.saveChangeHistory = wassave;
 		data.resetChangedSinceSave();
-		
+
 		if (abort && AlertDialog.query(containerOfModule(), "Save partial file?" , "Save the portion that has been read in and processed?","Save", "Cancel"))
 			abort=false;  // for this importer, save whatever you have read in
 		finishImport(progIndicator, file, abort);
