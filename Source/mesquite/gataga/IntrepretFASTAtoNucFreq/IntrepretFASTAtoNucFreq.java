@@ -5,7 +5,7 @@ package mesquite.gataga.IntrepretFASTAtoNucFreq;
 import java.util.*;
 import java.awt.*;
 
-import mesquite.io.lib.FastaFileRecord;
+import mesquite.gataga.lib.*;
 import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
@@ -187,7 +187,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 				MesquiteString directoryName = new MesquiteString();
 				MesquiteString fastaFileName = new MesquiteString();
 				localFastaFilePath = MesquiteFile.openFileDialog("Choose FASTA file corresponding to BLAST database", directoryName, fastaFileName);
-				fastaFileRecordArray = NCBIUtil.getTableFromLocalFastaFile(localFastaFilePath);
+				fastaFileRecordArray = GatAgaUtil.getTableFromLocalFastaFile(localFastaFilePath);
 			}
 
 		}
@@ -363,7 +363,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 							 String fasta=null;
 							 if (idIsNameInLocalFastaFile) {
 								 if (fastaFileRecordArray!=null)
-									 fasta = NCBIUtil.fetchSequencesFromFastaFileRecordArray(IDs, fastaFileRecordArray, fastaBLASTResults);
+									 fasta = GatAgaUtil.fetchSequencesFromFastaFileRecordArray(IDs, fastaFileRecordArray, fastaBLASTResults);
 							 } else
 								 fasta = NCBIUtil.fetchGenBankSequencesFromIDs(IDs,  true, this, false,  fastaBLASTResults,  null);
 							 if (StringUtil.notEmpty(fasta)) {
