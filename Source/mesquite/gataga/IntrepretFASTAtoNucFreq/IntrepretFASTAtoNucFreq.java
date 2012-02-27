@@ -45,7 +45,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	double eValueCutoff = 10.0;
 	double bestBLASTSearchesCutoff = 0.0;
 	int numHits = 5;
-	boolean idIsNameInLocalFastaFile = false;
+//	boolean idIsNameInLocalFastaFile = false;
 	String localFastaFilePath = null;
 	
 	boolean fetchTaxonomy = false;
@@ -128,6 +128,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	public void readFileCore(Parser parser, MesquiteFile file, ContinuousData data, Taxa taxa, int lastTaxonNumber, ProgressIndicator progIndicator, String arguments) {
 		if (blasterTask==null)
 			return;
+	
 		boolean wassave = data.saveChangeHistory;
 		data.saveChangeHistory = false;
 		Parser subParser = new Parser();
@@ -159,11 +160,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		String pathForBestBLASTfiles = null;
 		String pathForBlastReport = null;
 		String pathForResavedFile = null;
-		FastaFileRecord[] fastaFileRecordArray = null;
 		if (blastOption==BLAST){
 			loglnEchoToStringBuffer("\n============\nBLAST Search", blastReport);
+			blasterTask.setBlastx(false);
 		} else if (blastOption==BLASTX){
 			loglnEchoToStringBuffer("\n============\nBLASTX Search", blastReport);
+			blasterTask.setBlastx(true);
 		}
 		if (blastOption==BLAST|| blastOption==BLASTX){
 			loglnEchoToStringBuffer("   Blasting sequences at least "+ lowerBlastSequenceLength + " bases long", blastReport);
@@ -183,13 +185,6 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					pathForBestBLASTfiles =pathForBLASTfiles+"Best eValue<="+bestBLASTSearchesCutoff+MesquiteFile.fileSeparator;
 				MesquiteFile.createDirectory(pathForBestBLASTfiles);
 			}
-			if (idIsNameInLocalFastaFile) {
-				MesquiteString directoryName = new MesquiteString();
-				MesquiteString fastaFileName = new MesquiteString();
-				localFastaFilePath = MesquiteFile.openFileDialog("Choose FASTA file corresponding to BLAST database", directoryName, fastaFileName);
-				fastaFileRecordArray = GatAgaUtil.getTableFromLocalFastaFile(localFastaFilePath);
-			}
-
 		}
 		
 		boolean someBlastsDone = false;
@@ -360,12 +355,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 							 if (blastOption==BLASTX)
 								 IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
 
-							 String fasta=null;
-							 if (idIsNameInLocalFastaFile) {
-								 if (fastaFileRecordArray!=null)
-									 fasta = GatAgaUtil.fetchSequencesFromFastaFileRecordArray(IDs, fastaFileRecordArray, fastaBLASTResults);
-							 } else
-								 fasta = NCBIUtil.fetchGenBankSequencesFromIDs(IDs,  true, this, false,  fastaBLASTResults,  null);
+							 String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
 							 if (StringUtil.notEmpty(fasta)) {
 								 fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
 								 String fileName = pathForBLASTfiles+sequenceName;
@@ -376,8 +366,9 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 
 						 }
 						 if (fetchTaxonomy) {
-							 String tax = NCBIUtil.fetchTaxonomyFromSequenceID(blastResult.getID(1), true, true, null);
-							 associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
+							 String tax = blasterTask.getTaxonomyFromID(blastResult.getID(1), true, true, null);
+							 if (StringUtil.notEmpty(tax))
+								 associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
 						 }
 					}
 					accessionNumbers.deassignArray();
