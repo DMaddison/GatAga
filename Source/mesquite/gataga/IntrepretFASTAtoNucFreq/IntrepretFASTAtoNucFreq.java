@@ -45,9 +45,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	double eValueCutoff = 10.0;
 	double bestBLASTSearchesCutoff = 0.0;
 	int numHits = 5;
-//	boolean idIsNameInLocalFastaFile = false;
+	//	boolean idIsNameInLocalFastaFile = false;
 	String localFastaFilePath = null;
-	
+	String matchList = null;
+	int minNumToMatch = 1;
+	int maxNumToMatch = 1;
+
 	boolean fetchTaxonomy = false;
 
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
@@ -78,6 +81,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			eValueCutoff = MesquiteDouble.fromString(content);		
 		else if ("bestBLASTSearchesCutoff".equalsIgnoreCase(tag))
 			bestBLASTSearchesCutoff = MesquiteDouble.fromString(content);		
+		else if ("minNumToMatch".equalsIgnoreCase(tag))
+			minNumToMatch = MesquiteInteger.fromString(content);
+		else if ("maxNumToMatch".equalsIgnoreCase(tag))
+			maxNumToMatch = MesquiteInteger.fromString(content);
+		 else if ("matchList".equalsIgnoreCase(tag))
+			 matchList = StringUtil.cleanXMLEscapeCharacters(content);
 	}
 	/*.................................................................................................................*/
 	public String preparePreferencesForXML () {
@@ -90,8 +99,53 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		StringUtil.appendXMLTag(buffer, 2, "numHits", numHits);  
 		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
 		StringUtil.appendXMLTag(buffer, 2, "bestBLASTSearchesCutoff", bestBLASTSearchesCutoff);  
+		StringUtil.appendXMLTag(buffer, 2, "minNumToMatch", minNumToMatch);  
+		StringUtil.appendXMLTag(buffer, 2, "maxNumToMatch", maxNumToMatch);  
+		StringUtil.appendXMLTag(buffer, 2, "matchList", matchList);  
 		return buffer.toString();
 	}
+	/*.................................................................................................................*/
+	public boolean queryOptions() {
+		MesquiteInteger buttonPressed = new MesquiteInteger(1);
+		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), getName() + " Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		dialog.addLabel(getName() + " Options");
+
+		RadioButtons blastRadioButtons= dialog.addRadioButtons(new String[] {"don't BLAST", "BLAST", "BLASTX"}, blastOption);
+		IntegerField blastLowerLengthField = dialog.addIntegerField("Lower length limit of sequences to be BLASTed:", lowerBlastSequenceLength, 10, 10, Integer.MAX_VALUE);
+		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", numHits, 8, 1, Integer.MAX_VALUE);
+		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
+		Checkbox resaveFastaFileBox = dialog.addCheckBox("Save copy of original FASTA file but with names appended with top hit", resaveFastaFile);
+		dialog.addHorizontalLine(2);
+		Checkbox saveTopHitsBox = dialog.addCheckBox("Save top hits to new FASTA files", saveTopHits);
+		DoubleField bestBLASTSearchesCutoffField = dialog.addDoubleField("Separate FASTA files with eValue <=", bestBLASTSearchesCutoff, 20, 0.0, Double.MAX_VALUE);
+		IntegerField minMatchesField = dialog.addIntegerField("Separate FASTA files with at least ", minNumToMatch, 4, 1, Integer.MAX_VALUE);
+		dialog.suppressNewPanel();
+		IntegerField maxMatchesField = dialog.addIntegerField("hits and at most ", maxNumToMatch, 4, 1, Integer.MAX_VALUE);
+		dialog.suppressNewPanel();
+		dialog.addLabel("hits");
+		SingleLineTextField matchListField = dialog.addTextField("that match these strings:", matchList, 40, true);
+		dialog.addHorizontalLine(2);
+		Checkbox fetchTaxonomyBox = dialog.addCheckBox("Fetch taxonomic information", fetchTaxonomy);
+
+		dialog.completeAndShowDialog(true);
+		if (buttonPressed.getValue()==0)  {
+			blastOption = blastRadioButtons.getValue();
+			lowerBlastSequenceLength = blastLowerLengthField.getValue();
+			eValueCutoff = eValueCutoffField.getValue();
+			numHits = numHitsField.getValue();
+			saveTopHits = saveTopHitsBox.getState();
+			resaveFastaFile = resaveFastaFileBox.getState();
+			fetchTaxonomy = fetchTaxonomyBox.getState();
+			bestBLASTSearchesCutoff = bestBLASTSearchesCutoffField.getValue();
+			minNumToMatch = minMatchesField.getValue();
+			maxNumToMatch = maxMatchesField.getValue();
+			matchList = matchListField.getText();
+			storePreferences();
+		}
+		dialog.dispose();
+		return (buttonPressed.getValue()==0);
+	}
+
 	/*.................................................................................................................*/
 	public boolean isPrerelease() {  
 		return true;  
@@ -125,10 +179,33 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		return charTask.newCharacterData(taxa, numChars, ContinuousData.DATATYPENAME);  //
 	}
 	/*.................................................................................................................*/
+	private String[] getMatchList(String matchList) { 
+		if (StringUtil.blank(matchList))
+			return null;
+		Parser parser = new Parser();
+		parser.setString(matchList);
+		parser.setWhitespaceString(",; ");
+		int numItems = parser.getNumberOfTokens();
+		if (numItems<=0)
+			return null;
+		String[] matchDef = new String[numItems];
+		for (int i=0; i<numItems; i++) {
+			matchDef[i]=parser.getNextToken();
+		}
+
+		return matchDef;
+	}
+	/*.................................................................................................................*/
 	public void readFileCore(Parser parser, MesquiteFile file, ContinuousData data, Taxa taxa, int lastTaxonNumber, ProgressIndicator progIndicator, String arguments) {
 		if (blasterTask==null)
 			return;
-	
+		
+		String[] matchInDefinitions = getMatchList(matchList);
+
+		boolean matchDefs = StringUtil.notEmpty(matchList);
+		
+		matchDefs = true;
+
 		boolean wassave = data.saveChangeHistory;
 		data.saveChangeHistory = false;
 		Parser subParser = new Parser();
@@ -157,7 +234,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		StringBuffer fastaBLASTResults = new StringBuffer();
 		boolean storeBlastSequences = saveTopHits;
 		String pathForBLASTfiles = null;
-		String pathForBestBLASTfiles = null;
+		String pathForBestFastaFiles = null;
+		String pathForOtherFastaFiles = null;
+		String subDirectoryForMatchedFiles = "Hits match criterion"+MesquiteFile.fileSeparator;
+		String subDirectoryForUnmatchedFiles = "Hits don't match criterion"+MesquiteFile.fileSeparator;
 		String pathForBlastReport = null;
 		String pathForResavedFile = null;
 		if (blastOption==BLAST){
@@ -172,37 +252,51 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			if (eValueCutoff>=0.0) 
 				loglnEchoToStringBuffer("   Only keeping hits with e-values less than or equal to "+ eValueCutoff, blastReport);
 			if (saveTopHits&& StringUtil.blank(pathForBLASTfiles)) {
-				pathForBLASTfiles = MesquiteFile.chooseDirectory("Choose directory to store top BLAST hits: ");
+				pathForBLASTfiles = MesquiteFile.chooseDirectory("Choose directory to store BLAST results: ");
 				if (StringUtil.blank(pathForBLASTfiles))
 					storeBlastSequences = false;
 				else if (!pathForBLASTfiles.endsWith(MesquiteFile.fileSeparator))
 					pathForBLASTfiles+=MesquiteFile.fileSeparator;
 			}
 			if (storeBlastSequences) {
-				if (bestBLASTSearchesCutoff==0.0)
-					pathForBestBLASTfiles =pathForBLASTfiles+"Best eValue=0"+MesquiteFile.fileSeparator;
-				else
-					pathForBestBLASTfiles =pathForBLASTfiles+"Best eValue<="+bestBLASTSearchesCutoff+MesquiteFile.fileSeparator;
-				MesquiteFile.createDirectory(pathForBestBLASTfiles);
+				if (bestBLASTSearchesCutoff==0.0) {
+					pathForBestFastaFiles =pathForBLASTfiles+"Best eValue=0"+MesquiteFile.fileSeparator;
+				}
+				else {
+					pathForBestFastaFiles =pathForBLASTfiles+"Best eValue<="+bestBLASTSearchesCutoff+MesquiteFile.fileSeparator;
+				}
+				pathForOtherFastaFiles =pathForBLASTfiles+"Higher eValues"+MesquiteFile.fileSeparator;
+				MesquiteFile.createDirectory(pathForBestFastaFiles);
+				MesquiteFile.createDirectory(pathForOtherFastaFiles);
+				if (matchDefs) {
+					MesquiteFile.createDirectory(pathForBestFastaFiles+subDirectoryForMatchedFiles);
+					MesquiteFile.createDirectory(pathForBestFastaFiles+subDirectoryForUnmatchedFiles);
+					MesquiteFile.createDirectory(pathForOtherFastaFiles+subDirectoryForMatchedFiles);
+					MesquiteFile.createDirectory(pathForOtherFastaFiles+subDirectoryForUnmatchedFiles);
+				}
 			}
 		}
-		
+
 		boolean someBlastsDone = false;
 
 		if (blastOption==BLAST|| blastOption==BLASTX){
 			loglnEchoToStringBuffer("\n============\n", blastReport);
-			StringBuffer fileNameBuffer = new StringBuffer("BLAST Report");
-			pathForBlastReport = MesquiteFile.saveFileAsDialog("Save BLAST report", fileNameBuffer);
+			pathForBlastReport =pathForBLASTfiles+"BLAST Report";
+			//			StringBuffer fileNameBuffer = new StringBuffer("BLAST Report");
+			//			pathForBlastReport = MesquiteFile.saveFileAsDialog("Save BLAST report", fileNameBuffer);
 			if (pathForBlastReport!=null)
 				MesquiteFile.putFileContents(pathForBlastReport, blastReport.toString(), true);
 			blastReport.setLength(0);
-			fileNameBuffer.setLength(0);
-			fileNameBuffer.append("MOD"+file.getName());
-			if (resaveFastaFile){
-				pathForResavedFile = MesquiteFile.saveFileAsDialog("Save Modified FASTA file", fileNameBuffer);
-			}
+			if (resaveFastaFile)
+				pathForResavedFile =pathForBLASTfiles+"Modified."+file.getName();
+
+			//			fileNameBuffer.setLength(0);
+			//			fileNameBuffer.append("MOD"+file.getName());
+			//			if (resaveFastaFile){
+			//				pathForResavedFile = MesquiteFile.saveFileAsDialog("Save Modified FASTA file", fileNameBuffer);
+			//			}
 		}
-		
+
 
 		data.setCharacterName(charLength, "length");
 		data.setCharacterName(charA, "A");
@@ -329,43 +423,52 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						loglnEchoToStringBuffer("   No acceptable hits.", blastReport);
 					} else {
 						Associable associable = data.getTaxaInfo(true);
-						 associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
-						 associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
-						 associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
-						 associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(0));
-						 sequenceNameSuffix = " [top hit: " + StringUtil.getItem(blastResult.getDefinition(0), "|",5) + ", eValue=" + blastResult.geteValue(0) +  "]";
+						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
+						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
+						associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
+						associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(0));
+						sequenceNameSuffix = " [top hit: " + StringUtil.getItem(blastResult.getDefinition(0), "|",5) + ", eValue=" + blastResult.geteValue(0) +  "]";
 
-						 fastaBLASTResults.setLength(0);
-						 // blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
+						fastaBLASTResults.setLength(0);
+						// blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 
-						 String[] IDs = blastResult.getIDs();
-						 if (IDs!=null) {
-							 loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
-						 }
+						String[] IDs = blastResult.getIDs();
+						if (IDs!=null) {
+							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
+						}
 
-						 if (storeBlastSequences) {
-							 if (blastOption==BLASTX){
-								 //blastResult.setIDFromDefinition("|", 2);
-								 IDs=blastResult.getIDs();
-								 IDs = blasterTask.getNucleotideIDsfromProteinIDs(IDs);
+						if (storeBlastSequences) {
+							if (blastOption==BLASTX){
+								//blastResult.setIDFromDefinition("|", 2);
+								IDs=blastResult.getIDs();
+								IDs = blasterTask.getNucleotideIDsfromProteinIDs(IDs);
 								// IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
-							 }
+							}
 
-							 String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
-							 if (StringUtil.notEmpty(fasta)) {
-								 fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
-								 String fileName = pathForBLASTfiles+sequenceName;
-								 if (blastResult.geteValue(0)<=bestBLASTSearchesCutoff)
-									 fileName = pathForBestBLASTfiles+sequenceName;
-								 MesquiteFile.putFileContents(fileName, fastaBLASTResults.toString(), true);
-							 }
+							String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
+							if (StringUtil.notEmpty(fasta)) {	
+								//Debugg.println(blastResult.reversedToString());
+								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
+								String fileName = "";
+								if (blastResult.geteValue(0)<=bestBLASTSearchesCutoff)  // separate files by eValue
+									fileName = pathForBestFastaFiles;
+								else
+									fileName = pathForOtherFastaFiles;
+								if (matchDefs) 
+									if (blastResult.hitsSatisfyMatches(matchInDefinitions, minNumToMatch, maxNumToMatch))
+										fileName+= subDirectoryForMatchedFiles;
+									else
+										fileName+= subDirectoryForUnmatchedFiles;
+								fileName += sequenceName;
+								MesquiteFile.putFileContents(fileName, fastaBLASTResults.toString(), true);
+							}
 
-						 }
-						 if (fetchTaxonomy) {
-							 String tax = blasterTask.getTaxonomyFromID(blastResult.getID(0), true, true, null);
-							 if (StringUtil.notEmpty(tax))
-								 associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
-						 }
+						}
+						if (fetchTaxonomy) {
+							String tax = blasterTask.getTaxonomyFromID(blastResult.getID(0), true, true, null);
+							if (StringUtil.notEmpty(tax))
+								associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
+						}
 					}
 					accessionNumbers.deassignArray();
 
@@ -408,46 +511,15 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			else
 				data.deleteCharacters(numFilledChars+1, data.getNumChars()-numFilledChars, true);   // add a character if needed
 
-	
+
 
 		data.saveChangeHistory = wassave;
 		data.resetChangedSinceSave();
-		
+
 		if (abort && AlertDialog.query(containerOfModule(), "Save partial file?" , "Save the portion that has been read in and processed?","Save", "Cancel"))
 			abort=false;  // for this importer, save whatever you have read in
 		finishImport(progIndicator, file, abort);
 
-	}
-
-	/*.................................................................................................................*/
-	public boolean queryOptions() {
-		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), getName() + " Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
-		dialog.addLabel(getName() + " Options");
-
-		RadioButtons blastRadioButtons= dialog.addRadioButtons(new String[] {"don't BLAST", "BLAST", "BLASTX"}, blastOption);
-		IntegerField blastLowerLengthField = dialog.addIntegerField("Lower length limit of sequences to be BLASTed:", lowerBlastSequenceLength, 10, 10, Integer.MAX_VALUE);
-		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", numHits, 8, 1, Integer.MAX_VALUE);
-		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
-		Checkbox resaveFastaFileBox = dialog.addCheckBox("Save copy of original FASTA file but with names appended with top hit", resaveFastaFile);
-		Checkbox saveTopHitsBox = dialog.addCheckBox("Save top hits to new FASTA files", saveTopHits);
-		DoubleField bestBLASTSearchesCutoffField = dialog.addDoubleField("Move FASTA file to a separate folder if eValue is less than: ", bestBLASTSearchesCutoff, 20, 0.0, Double.MAX_VALUE);
-		Checkbox fetchTaxonomyBox = dialog.addCheckBox("Fetch taxonomic information", fetchTaxonomy);
-
-		dialog.completeAndShowDialog(true);
-		if (buttonPressed.getValue()==0)  {
-			blastOption = blastRadioButtons.getValue();
-			lowerBlastSequenceLength = blastLowerLengthField.getValue();
-			eValueCutoff = eValueCutoffField.getValue();
-			numHits = numHitsField.getValue();
-			saveTopHits = saveTopHitsBox.getState();
-			resaveFastaFile = resaveFastaFileBox.getState();
-			fetchTaxonomy = fetchTaxonomyBox.getState();
-			bestBLASTSearchesCutoff = bestBLASTSearchesCutoffField.getValue();
-			storePreferences();
-		}
-		dialog.dispose();
-		return (buttonPressed.getValue()==0);
 	}
 
 	/*.................................................................................................................*/
