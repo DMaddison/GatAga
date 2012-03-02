@@ -203,6 +203,8 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	
 	/*.................................................................................................................*/
 	public  String getTaxonomyFromID(String id, boolean isNucleotides, boolean writeLog, StringBuffer report){
+		if (blastx)
+			id = NCBIUtil.cleanUpID(id);
 		if (localBlastDBHasTaxonomyIDs)
 			return NCBIUtil.fetchTaxonomyFromSequenceID(id, isNucleotides, writeLog, report);
 		return null;

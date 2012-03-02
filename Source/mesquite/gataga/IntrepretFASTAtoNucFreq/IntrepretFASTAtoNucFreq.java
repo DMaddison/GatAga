@@ -317,7 +317,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						blasterTask.blastForMatches("blastn", sequenceName, sequence.toString(), true, numHits, 300, eValueCutoff, response,  taxonNumber==1);
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
-					//blasterTask.postProcessingCleanup(blastResult);
+					blasterTask.postProcessingCleanup(blastResult);
 
 					if (blastOption==BLASTX)
 						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
