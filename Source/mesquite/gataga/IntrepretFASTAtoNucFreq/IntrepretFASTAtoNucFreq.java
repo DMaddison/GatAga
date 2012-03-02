@@ -50,6 +50,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 	String matchList = null;
 	int minNumToMatch = 1;
 	int maxNumToMatch = 1;
+	boolean onlyMatchOnce = false;
+	boolean matchNoOthers = false;
 
 	boolean fetchTaxonomy = false;
 
@@ -71,6 +73,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			saveTopHits = MesquiteBoolean.fromTrueFalseString(content);
 		else if ("resaveFastaFile".equalsIgnoreCase(tag))
 			resaveFastaFile = MesquiteBoolean.fromTrueFalseString(content);
+		else if ("onlyMatchOnce".equalsIgnoreCase(tag))
+			onlyMatchOnce = MesquiteBoolean.fromTrueFalseString(content);
+		else if ("matchNoOthers".equalsIgnoreCase(tag))
+			matchNoOthers = MesquiteBoolean.fromTrueFalseString(content);
 		else if ("blastOption".equalsIgnoreCase(tag))
 			blastOption = MesquiteInteger.fromString(content);
 		else if ("lowerBlastSequenceLength".equalsIgnoreCase(tag))
@@ -93,6 +99,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		StringBuffer buffer = new StringBuffer(60);	
 		StringUtil.appendXMLTag(buffer, 2, "fetchTaxonomy", fetchTaxonomy);  
 		StringUtil.appendXMLTag(buffer, 2, "saveTopHits", saveTopHits);  
+		StringUtil.appendXMLTag(buffer, 2, "onlyMatchOnce", onlyMatchOnce);  
+		StringUtil.appendXMLTag(buffer, 2, "matchNoOthers", matchNoOthers);  
 		StringUtil.appendXMLTag(buffer, 2, "resaveFastaFile", resaveFastaFile);  
 		StringUtil.appendXMLTag(buffer, 2, "blastOption", blastOption);  
 		StringUtil.appendXMLTag(buffer, 2, "lowerBlastSequenceLength", lowerBlastSequenceLength);  
@@ -118,12 +126,15 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		dialog.addHorizontalLine(2);
 		Checkbox saveTopHitsBox = dialog.addCheckBox("Save top hits to new FASTA files", saveTopHits);
 		DoubleField bestBLASTSearchesCutoffField = dialog.addDoubleField("Separate FASTA files with eValue <=", bestBLASTSearchesCutoff, 20, 0.0, Double.MAX_VALUE);
-		IntegerField minMatchesField = dialog.addIntegerField("Separate FASTA files with at least ", minNumToMatch, 4, 1, Integer.MAX_VALUE);
+		IntegerField minMatchesField = dialog.addIntegerField("Sequester FASTA files with at least ", minNumToMatch, 4, 1, Integer.MAX_VALUE);
 		dialog.suppressNewPanel();
 		IntegerField maxMatchesField = dialog.addIntegerField("hits and at most ", maxNumToMatch, 4, 1, Integer.MAX_VALUE);
 		dialog.suppressNewPanel();
 		dialog.addLabel("hits");
-		SingleLineTextField matchListField = dialog.addTextField("that match these strings:", matchList, 40, true);
+		SingleLineTextField matchListField = dialog.addTextField("that match these names:", matchList, 40, true);
+		Checkbox onlyMatchOnceBox = dialog.addCheckBox("and only one hit per match", onlyMatchOnce);
+		dialog.suppressNewPanel();
+		Checkbox matchNoOthersBox = dialog.addCheckBox("and all hits must match one in the list ", matchNoOthers);
 		dialog.addHorizontalLine(2);
 		Checkbox fetchTaxonomyBox = dialog.addCheckBox("Fetch taxonomic information", fetchTaxonomy);
 
@@ -133,6 +144,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			lowerBlastSequenceLength = blastLowerLengthField.getValue();
 			eValueCutoff = eValueCutoffField.getValue();
 			numHits = numHitsField.getValue();
+			onlyMatchOnce = onlyMatchOnceBox.getState();
+			matchNoOthers = matchNoOthersBox.getState();
 			saveTopHits = saveTopHitsBox.getState();
 			resaveFastaFile = resaveFastaFileBox.getState();
 			fetchTaxonomy = fetchTaxonomyBox.getState();
@@ -259,6 +272,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					pathForBLASTfiles+=MesquiteFile.fileSeparator;
 			}
 			if (storeBlastSequences) {
+				loglnEchoToStringBuffer("   Saving FASTA files for top blast hits", blastReport);
+
 				if (bestBLASTSearchesCutoff==0.0) {
 					pathForBestFastaFiles =pathForBLASTfiles+"Best eValue=0"+MesquiteFile.fileSeparator;
 				}
@@ -269,6 +284,21 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 				MesquiteFile.createDirectory(pathForBestFastaFiles);
 				MesquiteFile.createDirectory(pathForOtherFastaFiles);
 				if (matchDefs) {
+					loglnEchoToStringBuffer("   Sequester FASTA files with ", blastReport);
+					if (minNumToMatch==maxNumToMatch) {
+						if (minNumToMatch==1)
+							loglnEchoToStringBuffer("     1 hit ", blastReport);
+						else 
+							loglnEchoToStringBuffer("     " + minNumToMatch + " hits ", blastReport);
+					}
+					else 
+						loglnEchoToStringBuffer("     between " + minNumToMatch + " and "+ maxNumToMatch + " hits ", blastReport);
+					loglnEchoToStringBuffer("     that match these names: " + matchList, blastReport);
+					if (onlyMatchOnce) 
+						loglnEchoToStringBuffer("     with each name only matched once", blastReport);
+					if (matchNoOthers) 
+						loglnEchoToStringBuffer("     and all hits must match at least one name in the list", blastReport);
+
 					MesquiteFile.createDirectory(pathForBestFastaFiles+subDirectoryForMatchedFiles);
 					MesquiteFile.createDirectory(pathForBestFastaFiles+subDirectoryForUnmatchedFiles);
 					MesquiteFile.createDirectory(pathForOtherFastaFiles+subDirectoryForMatchedFiles);
@@ -455,8 +485,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 								else
 									fileName = pathForOtherFastaFiles;
 								if (matchDefs) 
-									if (blastResult.hitsSatisfyMatches(matchInDefinitions, minNumToMatch, maxNumToMatch))
+									if (blastResult.hitsSatisfyMatches(matchInDefinitions, minNumToMatch, maxNumToMatch, matchNoOthers, onlyMatchOnce)){
 										fileName+= subDirectoryForMatchedFiles;
+										loglnEchoToStringBuffer("   ** Hits satisfy match criterion; FASTA file will be sequestered **", blastReport);
+									}
 									else
 										fileName+= subDirectoryForUnmatchedFiles;
 								fileName += sequenceName;
