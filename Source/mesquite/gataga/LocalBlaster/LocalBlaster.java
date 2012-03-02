@@ -64,6 +64,10 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
 		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Local Blast Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
 		dialog.addLabel("Local Blast Options");
+		StringBuffer sb = new StringBuffer();
+		sb.append("To use this local blast tool, you need to have installed the blast program on this computer, and need to have also set up local blast databases on your computer.\n");
+		sb.append("If you are going to do a blastX to a local protein database that you downloaded from GenBank, you will need to check Use ID in Definition");
+		dialog.appendToHelpString(sb.toString());
 
 		SingleLineTextField databasesField = dialog.addTextField("Databases to search:", databases, 26, true);
 		SingleLineTextField programOptionsField = dialog.addTextField("Additional Blast options:", programOptions, 26, true);
@@ -209,12 +213,17 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	/*.................................................................................................................*/
 	public  void postProcessingCleanup(BLASTResults blastResult){
 		if (useIDInDefinition){
-			blastResult.setIDFromDefinition("|", 2);
+//			blastResult.setIDFromDefinition("|", 2);
+			blastResult.setIDFromDefinition();
 			blastResult.setAccessionFromDefinition("|", 4);
 		}
 			
 	}
 
+	public  String[] getNucleotideIDsfromProteinIDs(String[] ID){
+		ID = NCBIUtil.cleanUpID(ID);
+		return NCBIUtil.getNucIDsFromProtIDs(ID);
+	}
 
 	/*.................................................................................................................*/
 	public boolean isSubstantive(){

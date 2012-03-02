@@ -316,27 +316,19 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 					else if (blastOption==BLAST)
 						blasterTask.blastForMatches("blastn", sequenceName, sequence.toString(), true, numHits, 300, eValueCutoff, response,  taxonNumber==1);
 					someBlastsDone = true;
-					/*		if (blastOption==BLAST)
-						NCBIUtil.blastForMatches("blastn", token, sequence.toString(), true, numHits, 300, response);
-					else if (blastOption==BLASTX)
-						NCBIUtil.blastForMatches("blastx", token, sequence.toString(), true, numHits, 300, response);
-					 */
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
-					blasterTask.postProcessingCleanup(blastResult);
+					//blasterTask.postProcessingCleanup(blastResult);
 
 					if (blastOption==BLASTX)
 						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
 					else 
 						loglnEchoToStringBuffer("   BLAST search completed", blastReport);
-					if (blastResult.geteValue(1)<0.0) {
+					if (blastResult.geteValue(0)<0.0) {
 						loglnEchoToStringBuffer("   No hits.", blastReport);
-					} else if (blastResult.geteValue(1)>eValueCutoff) {
+					} else if (blastResult.geteValue(0)>eValueCutoff) {
 						loglnEchoToStringBuffer("   No acceptable hits.", blastReport);
 					} else {
-						/*	loglnEchoToStringBuffer("   Top hit: " + blastResult.getDefinition(1), blastReport);
-						loglnEchoToStringBuffer("   Accession: " + blastResult.getAccession(1), blastReport);
-						loglnEchoToStringBuffer("   e-Value: " +blastResult.geteValue(1), blastReport);
-						 */	Associable associable = data.getTaxaInfo(true);
+						Associable associable = data.getTaxaInfo(true);
 						 associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
 						 associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
 						 associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
@@ -352,8 +344,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 						 }
 
 						 if (storeBlastSequences) {
-							 if (blastOption==BLASTX)
-								 IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
+							 if (blastOption==BLASTX){
+								 //blastResult.setIDFromDefinition("|", 2);
+								 IDs=blastResult.getIDs();
+								 IDs = blasterTask.getNucleotideIDsfromProteinIDs(IDs);
+								// IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
+							 }
 
 							 String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
 							 if (StringUtil.notEmpty(fasta)) {
@@ -366,7 +362,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 
 						 }
 						 if (fetchTaxonomy) {
-							 String tax = blasterTask.getTaxonomyFromID(blastResult.getID(1), true, true, null);
+							 String tax = blasterTask.getTaxonomyFromID(blastResult.getID(0), true, true, null);
 							 if (StringUtil.notEmpty(tax))
 								 associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
 						 }
