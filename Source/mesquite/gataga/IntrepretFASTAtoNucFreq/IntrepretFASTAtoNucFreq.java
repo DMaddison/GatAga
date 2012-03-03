@@ -253,6 +253,9 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 		String subDirectoryForUnmatchedFiles = "Hits don't match criterion"+MesquiteFile.fileSeparator;
 		String pathForBlastReport = null;
 		String pathForResavedFile = null;
+		String pathForResavedBestHitsSequesterFile = null;
+		String pathForResavedOtherHitsSequesterFile = null;
+		
 		if (blastOption==BLAST){
 			loglnEchoToStringBuffer("\n============\nBLAST Search", blastReport);
 			blasterTask.setBlastx(false);
@@ -317,8 +320,13 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 			if (pathForBlastReport!=null)
 				MesquiteFile.putFileContents(pathForBlastReport, blastReport.toString(), true);
 			blastReport.setLength(0);
-			if (resaveFastaFile)
+			if (resaveFastaFile){
 				pathForResavedFile =pathForBLASTfiles+"Modified."+file.getName();
+			}
+			if (storeBlastSequences && matchDefs){
+				pathForResavedBestHitsSequesterFile =pathForBLASTfiles+"BestHitsCriteriaMatch."+file.getName();
+				pathForResavedOtherHitsSequesterFile =pathForBLASTfiles+"OtherHitsCriteriaMatch."+file.getName();
+			}
 
 			//			fileNameBuffer.setLength(0);
 			//			fileNameBuffer.append("MOD"+file.getName());
@@ -487,10 +495,17 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI {
 								if (matchDefs) 
 									if (blastResult.hitsSatisfyMatches(matchInDefinitions, minNumToMatch, maxNumToMatch, matchNoOthers, onlyMatchOnce)){
 										fileName+= subDirectoryForMatchedFiles;
-										loglnEchoToStringBuffer("   ** Hits satisfy match criterion; FASTA file will be sequestered **", blastReport);
+										loglnEchoToStringBuffer("   ** Hits satisfy match criterion; FASTA file will be sequestered **\n", blastReport);
+										if (pathForResavedBestHitsSequesterFile!=null) {
+											if (blastResult.geteValue(0)<=bestBLASTSearchesCutoff)
+												MesquiteFile.appendFileContents(pathForResavedBestHitsSequesterFile, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n", true);
+											else
+												MesquiteFile.appendFileContents(pathForResavedOtherHitsSequesterFile, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n", true);
+										}
 									}
-									else
+									else {
 										fileName+= subDirectoryForUnmatchedFiles;
+									}
 								fileName += sequenceName;
 								MesquiteFile.putFileContents(fileName, fastaBLASTResults.toString(), true);
 							}
