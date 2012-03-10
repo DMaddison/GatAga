@@ -29,6 +29,20 @@ public class BlastEValueCriterion extends BlastSeparateCriterion {
 		subdirectoryNames[HIGHEREVALUE] = "Higher eValues";
 		return subdirectoryNames;
 	}
+	/*.................................................................................................................*/
+	public String getDescriptionOfThisMatch(int index){
+		if (index==BESTEVALUE) {
+			if (bestBLASTSearchesCutoff==0.0) {
+				return "These are sequences whose top hit had an eValue of 0.0";
+			}
+			else {
+				return "These are sequences whose top hit had an eValue less than or equal to "+ bestBLASTSearchesCutoff;
+			}
+		} else {
+			return "These are sequences whose top hit had an eValue greater than "+ bestBLASTSearchesCutoff;
+		}
+	}
+
 
 	/*.................................................................................................................*/
 	public int getCriterionMatch(BLASTResults blastResult) {

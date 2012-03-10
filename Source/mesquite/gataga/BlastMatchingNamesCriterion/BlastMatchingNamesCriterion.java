@@ -24,7 +24,6 @@ public class BlastMatchingNamesCriterion extends BlastSeparateCriterion {
 	
 	public void intialize() {
 		
-
 	}
 	
 	/*.................................................................................................................*/
@@ -41,6 +40,16 @@ public class BlastMatchingNamesCriterion extends BlastSeparateCriterion {
 			subdirectoryNames[i] = "Match "+ (minNumToMatch+i-1);
 		return subdirectoryNames;
 	}
+	
+	public String getDescriptionOfThisMatch(int index){
+		if (index==UNMATCHED) {
+			return "These are BLAST hits that did not match the names appropriately";
+		} else {
+			return "These are for sequences that matched " + (minNumToMatch+index+1) + " appropriately.";
+		}
+	}
+
+
 
 	/*.................................................................................................................*/
 	public int getCriterionMatch(BLASTResults blastResult) {

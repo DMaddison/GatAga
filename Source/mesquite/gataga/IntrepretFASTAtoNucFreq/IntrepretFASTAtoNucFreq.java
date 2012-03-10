@@ -70,6 +70,38 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		return true;  
 	}
 	/*.................................................................................................................*/
+	private BlastSeparateCriterion replaceBlastSequesterCriteriaTask(int i, String arguments) {
+		BlastSeparateCriterion temp = (BlastSeparateCriterion)replaceEmployee(BlastSeparateCriterion.class,  arguments, "Supplier of information about primers and gene fragments", blastSequesterCriteriaTask[i]);
+		if (temp !=null) {
+			blastSequesterCriteriaTask[i]=temp;
+			switchCriterion(i, temp);
+		}
+		return temp;
+	}
+	/*.................................................................................................................*/
+	public void hireBlastCriterion(int whichCriterion, int index) {  
+		String name = getModuleClassName(BlastSeparateCriterion.class, index);
+		if (StringUtil.notEmpty(name)) {
+			BlastSeparateCriterion newCriterion = (BlastSeparateCriterion)hireNamedEmployee(BlastSeparateCriterion.class, "#"+name);
+			if (newCriterion!=null) {
+				switchCriterion(whichCriterion, newCriterion);
+			}
+		}
+	}
+	/*.................................................................................................................*/
+	public void switchCriterion(int whichCriterion, BlastSeparateCriterion newCriterion) {  
+		if (newCriterion!=null) {
+			if (criterionOption!=null && criterionOption[whichCriterion]!=null)
+				criterionOption[whichCriterion].removeActionListener(blastSequesterCriteriaTask[whichCriterion] );
+			blastSequesterCriteriaTask[whichCriterion] = newCriterion;
+			blastSequesterCriteriaTask[whichCriterion].initialize();
+			if (criterionOption!=null && criterionOption[whichCriterion]!=null){
+				criterionOption[whichCriterion].addActionListener(blastSequesterCriteriaTask[whichCriterion] );
+				criterionOption[whichCriterion].setEnabled(newCriterion.isEditable());
+			}
+		}
+	}
+	/*.................................................................................................................*/
 	public void processSingleXMLPreference (String tag, String content) {
 		if ("fetchTaxonomy".equalsIgnoreCase(tag))
 			fetchTaxonomy = MesquiteBoolean.fromTrueFalseString(content);
@@ -85,6 +117,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			numHits = MesquiteInteger.fromString(content);		
 		else if ("eValueCutoff".equalsIgnoreCase(tag))
 			eValueCutoff = MesquiteDouble.fromString(content);		
+		else {
+			for (int i = 0; i < numBlastSeparateCriteria; i++) {
+				if (("blastSequesterCriteriaTask"+i).equalsIgnoreCase(tag))
+					replaceBlastSequesterCriteriaTask(i, content);
+			}
+		}
 	}
 	/*.................................................................................................................*/
 	public String preparePreferencesForXML () {
@@ -96,10 +134,14 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		StringUtil.appendXMLTag(buffer, 2, "lowerBlastSequenceLength", lowerBlastSequenceLength);  
 		StringUtil.appendXMLTag(buffer, 2, "numHits", numHits);  
 		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
+		for (int i = 0; i < numBlastSeparateCriteria; i++) {
+			if (blastSequesterCriteriaTask[i]!=null && blastSequesterCriteriaTask[i].pleaseRecord())
+				StringUtil.appendXMLTag(buffer, 2, "blastSequesterCriteriaTask"+i, blastSequesterCriteriaTask[i]);
+		}
 		return buffer.toString();
 	}
 	/*.................................................................................................................*/
-	
+
 	Choice[] blastSeparateCriterionChoice;
 	Button[] criterionOption;
 	/*.................................................................................................................*/
@@ -124,6 +166,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			blastSeparateCriterionChoice[i] = dialog.addPopUpMenu(""+(i+1)+". Separate FASTA files based upon: ", BlastSeparateCriterion.class, dialog.getModuleClassNumber(BlastSeparateCriterion.class, blastSequesterCriteriaTask[i].getClassName()));
 			dialog.suppressNewPanel();
 			criterionOption[i] = dialog.addAListenedButton("Options...", null, blastSequesterCriteriaTask[i]);
+			criterionOption[i].setEnabled(blastSequesterCriteriaTask[i].isEditable());
 			dialog.forceNewPanel();
 			blastSeparateCriterionChoice[i].addItemListener(this);
 		}
@@ -151,6 +194,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		dialog.dispose();
 		return (buttonPressed.getValue()==0);
 	}
+	/*.................................................................................................................*/
 	public String[] getModuleList(Class dutyClass) {
 		StringArray stringArray = new StringArray(5);
 		if (dutyClass!=null) {  //module dutyClass specified; need to create list of modules to choose
@@ -180,26 +224,15 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		return null;
 	}
 	/*.................................................................................................................*/
-	public void hireBlastCriterion(int whichCriterion, int index) {  
-		String name = getModuleClassName(BlastSeparateCriterion.class, index);
-		if (StringUtil.notEmpty(name)) {
-			BlastSeparateCriterion newCriterion = (BlastSeparateCriterion)hireNamedEmployee(BlastSeparateCriterion.class, "#"+name);
-			if (newCriterion!=null) {
-				criterionOption[whichCriterion].removeActionListener(blastSequesterCriteriaTask[whichCriterion] );
-				blastSequesterCriteriaTask[whichCriterion] = newCriterion;
-				criterionOption[whichCriterion].addActionListener(blastSequesterCriteriaTask[whichCriterion] );
+	public void itemStateChanged(ItemEvent e){
+		for (int i=0; i<numBlastSeparateCriteria; i++){
+			if (e.getItemSelectable() == blastSeparateCriterionChoice[i]){
+				int index = blastSeparateCriterionChoice[i].getSelectedIndex();
+				hireBlastCriterion(i, index);
+
 			}
 		}
 	}
-	/*.................................................................................................................*/
-  	public void itemStateChanged(ItemEvent e){
-		for (int i=0; i<numBlastSeparateCriteria; i++){
-	 		if (e.getItemSelectable() == blastSeparateCriterionChoice[i]){
-	 			int index = blastSeparateCriterionChoice[i].getSelectedIndex();
-	 			hireBlastCriterion(i, index);
-	  		}
-		}
-  	}
 	/*.................................................................................................................*/
 	public boolean isPrerelease() {  
 		return true;  
@@ -248,11 +281,28 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		}
 
 	}
+	/*.................................................................................................................*/
+	private void saveInAllCriterionDirectories(String contents, String directory, String fileName, int taskNumber){
+		if (taskNumber>=blastSequesterCriteriaTask.length){
+			MesquiteFile.putFileContents(directory + fileName, contents, true);
+			return;
+		}
+		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {
+			String[] subDirectories = blastSequesterCriteriaTask[taskNumber].getSubdirectoryNames();
+			if (subDirectories!=null) {
+				for (int j=0; j<subDirectories.length; j++){
+					saveInAllCriterionDirectories(contents, directory+subDirectories[j]+MesquiteFile.fileSeparator, fileName, taskNumber+1);
+				}	
+			}
+		} else if (taskNumber==blastSequesterCriteriaTask.length-1){
+			MesquiteFile.putFileContents(directory + fileName, contents, true);
+		}
+	}
 
 	/*.................................................................................................................*/
-	private void saveInCriterionDirectory(BLASTResults blastResults, String fasta, String directory, String sequenceName, int taskNumber){
+	private void saveInCriterionDirectory(BLASTResults blastResults, String contents, String directory, String fileName, int taskNumber){
 		if (taskNumber>=blastSequesterCriteriaTask.length){
-			MesquiteFile.putFileContents(directory + sequenceName, fasta, true);
+			MesquiteFile.putFileContents(directory + fileName, contents, true);
 			return;
 		}
 		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {
@@ -263,10 +313,30 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					newDir = directory + newDir +MesquiteFile.fileSeparator;
 				else
 					newDir = directory;
-				saveInCriterionDirectory(blastResults, fasta, newDir, sequenceName, taskNumber+1);
+				saveInCriterionDirectory(blastResults, contents, newDir, fileName, taskNumber+1);
 			}	
 		} else if (taskNumber==blastSequesterCriteriaTask.length-1){
-			MesquiteFile.putFileContents(directory + sequenceName, fasta, true);
+			MesquiteFile.putFileContents(directory + fileName, contents, true);
+		}
+	}
+	/*.................................................................................................................*/
+	private void appendInCriterionDirectory(BLASTResults blastResults, String contents, String directory, String fileName, int taskNumber){
+		if (taskNumber>=blastSequesterCriteriaTask.length){
+			MesquiteFile.appendFileContents(directory + fileName, contents, true);
+			return;
+		}
+		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {
+			int match = blastSequesterCriteriaTask[taskNumber].getCriterionMatch(blastResults);
+			if (match>=0) {
+				String newDir = blastSequesterCriteriaTask[taskNumber].getDirectoryName(match);
+				if (StringUtil.notEmpty(newDir))
+					newDir = directory + newDir +MesquiteFile.fileSeparator;
+				else
+					newDir = directory;
+				appendInCriterionDirectory(blastResults, contents, newDir, fileName, taskNumber+1);
+			}	
+		} else if (taskNumber==blastSequesterCriteriaTask.length-1){
+			MesquiteFile.appendFileContents(directory + fileName, contents, true);
 		}
 	}
 
@@ -294,23 +364,16 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		subParser.setPunctuationString(">");
 		parser.setPunctuationString(">");
 		String token = subParser.getFirstToken(line); //should be >
-		int charAdded = 0;
 		int numFilledChars = data.getNumChars();
 		boolean added = false;
-		boolean replaceExisting = false;
 		StringBuffer response = new StringBuffer();
 		StringBuffer blastReport = new StringBuffer();
 		StringBuffer fastaBLASTResults = new StringBuffer();
 		boolean storeBlastSequences = saveTopHits;
 		String pathForBLASTfiles = null;
-		String pathForBestFastaFiles = null;
-		String pathForOtherFastaFiles = null;
-		String subDirectoryForMatchedFiles = "Hits match criterion"+MesquiteFile.fileSeparator;
-		String subDirectoryForUnmatchedFiles = "Hits don't match criterion"+MesquiteFile.fileSeparator;
 		String pathForBlastReport = null;
 		String pathForResavedFile = null;
-		String pathForResavedBestHitsSequesterFile = null;
-		String pathForResavedOtherHitsSequesterFile = null;
+		String pathForUnhitFiles = null;
 
 		if (blastOption==BLAST){
 			loglnEchoToStringBuffer("\n============\nBLAST Search", blastReport);
@@ -333,8 +396,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			if (storeBlastSequences) {
 				loglnEchoToStringBuffer("   Saving FASTA files for top blast hits", blastReport);
 
-			//	int numBlastSeparateCriteria = 3;
-			//	BlastSeparateCriterion[] blastSequesterCriteriaTask = new BlastSeparateCriterion[numBlastSeparateCriteria];
+				//	int numBlastSeparateCriteria = 3;
+				//	BlastSeparateCriterion[] blastSequesterCriteriaTask = new BlastSeparateCriterion[numBlastSeparateCriteria];
 
 				createCriteriaDirectories(pathForBLASTfiles,0);
 				for (int i=0;i<numBlastSeparateCriteria; i++) {
@@ -353,22 +416,14 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			pathForBlastReport =pathForBLASTfiles+"BLAST Report";
 			//			StringBuffer fileNameBuffer = new StringBuffer("BLAST Report");
 			//			pathForBlastReport = MesquiteFile.saveFileAsDialog("Save BLAST report", fileNameBuffer);
-			if (pathForBlastReport!=null)
+			if (pathForBlastReport!=null){
+				saveInAllCriterionDirectories(blastReport.toString(), pathForBLASTfiles, "BLAST Report", 0);
 				MesquiteFile.putFileContents(pathForBlastReport, blastReport.toString(), true);
+			}
 			blastReport.setLength(0);
 			if (resaveFastaFile){
 				pathForResavedFile =pathForBLASTfiles+"Modified."+file.getName();
 			}
-			/*			if (storeBlastSequences && matchDefs){
-				pathForResavedBestHitsSequesterFile =pathForBLASTfiles+"BestHitsCriteriaMatch."+file.getName();
-				pathForResavedOtherHitsSequesterFile =pathForBLASTfiles+"OtherHitsCriteriaMatch."+file.getName();
-			}
-			 */
-			//			fileNameBuffer.setLength(0);
-			//			fileNameBuffer.append("MOD"+file.getName());
-			//			if (resaveFastaFile){
-			//				pathForResavedFile = MesquiteFile.saveFileAsDialog("Save Modified FASTA file", fileNameBuffer);
-			//			}
 		}
 
 
@@ -387,7 +442,6 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			token = subParser.getRemaining();  //taxon Name
 			String sequenceName = token;
 			taxonNumber = taxa.whichTaxonNumber(token);
-			replaceExisting = false;
 
 
 			if (data.getNumTaxa()<=lastTaxonNumber) {
@@ -536,13 +590,21 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 								associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
 						}
 					}
+					if (pathForBlastReport!=null){
+						appendInCriterionDirectory(blastResult, blastReport.toString(), pathForBLASTfiles, "BLAST Report", 0);
+						MesquiteFile.appendFileContents(pathForBlastReport, blastReport.toString(), true);
+					}
+					blastReport.setLength(0);
 					accessionNumbers.deassignArray();
 
+					if (pathForResavedFile!=null) {
+						String newSequenceName = sequenceName+sequenceNameSuffix;
+						String modOriginal = ">"+newSequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n";
+						MesquiteFile.appendFileContents(pathForResavedFile, modOriginal, true);
+						appendInCriterionDirectory(blastResult, modOriginal, pathForBLASTfiles, "OriginalSequences.fa", 0);
+					}
 
-				}
-				if (pathForResavedFile!=null) {
-					String newSequenceName = sequenceName+sequenceNameSuffix;
-					MesquiteFile.appendFileContents(pathForResavedFile, ">"+newSequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n", true);
+
 				}
 
 			}
@@ -558,9 +620,6 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 				pos = parser.getPosition();
 			}
 			subParser.setString(line); //sets the string to be used by the parser to "line" and sets the pos to 0
-			if (pathForBlastReport!=null)
-				MesquiteFile.appendFileContents(pathForBlastReport, blastReport.toString(), true);
-			blastReport.setLength(0);
 
 			if (file !=null && file.getFileAborted()) {
 				abort = true;

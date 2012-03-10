@@ -27,8 +27,17 @@ public class aBlastNoCriterion extends BlastSeparateCriterion {
 		return false;
 	}
 
+	public boolean pleaseRecord(){
+		return false;
+	}
+
+
+	public boolean isEditable(){
+		return false;
+	}
+
 	public String getName() {
-		return "None";
+		return "-";
 	}
 
 
