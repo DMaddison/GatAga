@@ -115,7 +115,7 @@ public class SubsampleFastq extends UtilitiesAssistant {
 			long total = 0;
 			long count = 0;
 
-			while (!StringUtil.blank(line[0]) && !abort && total<500000) {
+			while (!StringUtil.blank(line[0]) && !abort) {
 				if (progIndicator!=null) {
 					if (total % 10000 == 0 && total>0) {
 						double ratio = 1.0*count/total;
