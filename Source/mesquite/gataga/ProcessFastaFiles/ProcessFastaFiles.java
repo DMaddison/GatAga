@@ -166,11 +166,9 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	/*.................................................................................................................*/
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
 		
-		if (proteinCoding)
-			MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa());
-		//MolecularDataUtil.pairwiseAlignMatrix(this, data, taxa, 0);
+		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), proteinCoding);
+		MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
 		if (proteinCoding){
-// setCodonPostions 
 			MolecularDataUtil.setCodonPositionsToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
 			//MolecularDataUtil.shiftToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
 		}
