@@ -115,11 +115,16 @@ public class SubsampleFastq extends UtilitiesAssistant {
 			long total = 0;
 			long count = 0;
 
-			while (!StringUtil.blank(line[0]) && !abort && total<1000000) {
+			while (!StringUtil.blank(line[0]) && !abort && total<500000) {
 				if (progIndicator!=null) {
 					if (total % 10000 == 0 && total>0) {
 						double ratio = 1.0*count/total;
 						progIndicator.setText("Sampled " +count+" of " + total + " ("+ MesquiteDouble.toStringDigitsSpecified(ratio, 4)+")");
+						if (total % 1000000 == 0) {
+							double timePerUnit = (1.0)*timer.timeSinceVeryStart()/pos;
+							long timeRemaining = (long)(timePerUnit*(fileToRead[0].existingLength()-pos));
+							logln("Estimated timing remaining: " + MesquiteTimer.getHoursMinutesSecondsFromMilliseconds(timeRemaining));
+						}
 					}
 					if (total % 1000 == 0)
 						progIndicator.setCurrentValue(pos);
@@ -151,7 +156,7 @@ public class SubsampleFastq extends UtilitiesAssistant {
 					abort = true;
 				}
 			}
-			
+
 			logln("Number of reads sampled:  " + count);
 			logln("Total number of reads:  " + total);
 			if (total>0)
@@ -174,6 +179,8 @@ public class SubsampleFastq extends UtilitiesAssistant {
 			MesquiteString directory = new MesquiteString();
 			MesquiteString fileName = new MesquiteString();
 			String fullPath = MesquiteFile.openFileDialog("Choose FASTQ file " + (i+1) + " to sample", directory, fileName);
+			if (StringUtil.blank(fullPath))
+				return;
 			fileToWrite[i] = new MesquiteFile();
 			fileToWrite[i].setPath(directory+"Sampled"+fileName);
 			fileToRead[i] = new MesquiteFile();
