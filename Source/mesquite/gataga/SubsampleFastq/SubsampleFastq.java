@@ -125,22 +125,13 @@ public class SubsampleFastq extends UtilitiesAssistant {
 						progIndicator.setCurrentValue(pos);
 				}
 				total++;
-				if (line[0].charAt(0)=='@') {
-				///	Debugg.println("read " + total);
-				}
 				boolean copy=rng.getDouble(0.0, 1.0)<=sampleFreq;
 
 				if (copy) {
 					count++;
-					///Debugg.println("   Sample" + total);
-				//	if (total % 10000 == 0 && total>0) {
-				//		logln("Sampled " +count+" of " + total + " ("+ 1.0*count/total+")");
-				//	}
 					for (int i=0; i<numFiles; i++) {
 						MesquiteFile.appendFileContents(fileToWrite[i].getPath(), line[i]+StringUtil.lineEnding(), true);
 					}
-					//Debugg.println("   " + line);
-
 				}
 
 				for (int i=0; i<numFiles; i++) {
