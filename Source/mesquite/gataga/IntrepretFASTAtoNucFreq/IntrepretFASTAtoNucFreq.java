@@ -39,10 +39,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 	Class[] acceptedClasses;
 
-	static final int DONTBLAST = 0;
-	static final int BLAST = 1;
-	static final int BLASTX = 2;
-	int blastOption = DONTBLAST;
+	int blastOption = Blaster.DONTBLAST;
 	int lowerBlastSequenceLength = 1000;
 	boolean saveTopHits = false;
 	boolean resaveFastaFile = false;
@@ -375,14 +372,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		String pathForResavedFile = null;
 		String pathForUnhitFiles = null;
 
-		if (blastOption==BLAST){
-			loglnEchoToStringBuffer("\n============\nBLAST Search", blastReport);
-			blasterTask.setBlastx(false);
-		} else if (blastOption==BLASTX){
-			loglnEchoToStringBuffer("\n============\nBLASTX Search", blastReport);
-			blasterTask.setBlastx(true);
-		}
-		if (blastOption==BLAST|| blastOption==BLASTX){
+		blasterTask.setBlastType(blastOption);
+
+		loglnEchoToStringBuffer("\n============\n"+ Blaster.getBlastTypeName(blastOption), blastReport);
+		if (blastOption!=Blaster.DONTBLAST){
 			loglnEchoToStringBuffer("   Blasting sequences at least "+ lowerBlastSequenceLength + " bases long", blastReport);
 			if (eValueCutoff>=0.0) 
 				loglnEchoToStringBuffer("   Only keeping hits with e-values less than or equal to "+ eValueCutoff, blastReport);
@@ -411,7 +404,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 		boolean someBlastsDone = false;
 
-		if (blastOption==BLAST|| blastOption==BLASTX){
+		if (blastOption!=Blaster.DONTBLAST){
 			loglnEchoToStringBuffer("\n============\n", blastReport);
 			pathForBlastReport =pathForBLASTfiles+"BLAST Report";
 			//			StringBuffer fileNameBuffer = new StringBuffer("BLAST Report");
@@ -529,22 +522,21 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					data.setState(charCG, taxonNumber, 0, ((double)countCG)/tot);
 				}
 				String sequenceNameSuffix = "";
-				if (length>=lowerBlastSequenceLength && (blastOption==BLAST|| blastOption==BLASTX)){
+				if (length>=lowerBlastSequenceLength && (blastOption!=Blaster.DONTBLAST)){
 					loglnEchoToStringBuffer("\nBLASTing  " + sequenceName, blastReport);
 					loglnEchoToStringBuffer("   Sequence length: "+ length, blastReport);
 					BLASTResults blastResult = new BLASTResults(numHits);
-					if (blastOption==BLASTX)
-						blasterTask.blastForMatches("blastx", sequenceName, sequence.toString(), true, numHits, 300, eValueCutoff, response, taxonNumber==1);
-					else if (blastOption==BLAST)
-						blasterTask.blastForMatches("blastn", sequenceName, sequence.toString(), true, numHits, 300, eValueCutoff, response,  taxonNumber==1);
+
+
+					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), numHits, eValueCutoff, response, taxonNumber==1);
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 					blasterTask.postProcessingCleanup(blastResult);
 
-					if (blastOption==BLASTX)
-						loglnEchoToStringBuffer("   BLASTX search completed", blastReport);
-					else 
-						loglnEchoToStringBuffer("   BLAST search completed", blastReport);
+					
+					if (blastOption!=Blaster.DONTBLAST)
+						loglnEchoToStringBuffer("   " + Blaster.getBlastTypeName(blastOption) +  " search completed", blastReport);
+					
 					if (blastResult.geteValue(0)<0.0) {
 						loglnEchoToStringBuffer("   No hits.", blastReport);
 					} else if (blastResult.geteValue(0)>eValueCutoff) {
@@ -566,7 +558,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 						}
 
 						if (storeBlastSequences) {
-							if (blastOption==BLASTX){
+							if (blastOption==Blaster.BLASTX){
 								//blastResult.setIDFromDefinition("|", 2);
 								IDs=blastResult.getIDs();
 								IDs = blasterTask.getNucleotideIDsfromProteinIDs(IDs);
@@ -664,7 +656,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		file.linkProgressIndicator(progIndicator);
 		if (file.openReading()) {
 			logln("\nReading and processing file " + file.getName());
-			if (blasterTask!=null && blastOption!=DONTBLAST)
+			if (blasterTask!=null && blastOption!=Blaster.DONTBLAST)
 				logln("  Blast uses \"" + blasterTask.getName() + "\"");
 			TaxaManager taxaTask = (TaxaManager)findElementManager(Taxa.class);
 			CharactersManager charTask = (CharactersManager)findElementManager(CharacterData.class);
