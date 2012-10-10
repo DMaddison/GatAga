@@ -114,7 +114,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		if (numThreads>1)
 			blastCommand+="  -num_threads " + numThreads;
 		blastCommand+=" -out " + outFileName + " -outfmt 5";		
-		blastCommand+=" -max_target_seqs " + numHits + " -num_alignments " + numHits + " -num_descriptions " + numHits;		
+		blastCommand+=" -max_target_seqs " + numHits; // + " -num_alignments " + numHits;// + " -num_descriptions " + numHits;		
 		blastCommand+=" " + programOptions + StringUtil.lineEnding();
 		shellScript.append(blastCommand);
 		if (writeCommand)
