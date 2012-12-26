@@ -618,6 +618,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 								String fileName = "";
 
 								saveInCriterionDirectory(blastResult, fastaBLASTResults.toString(), pathForBLASTfiles, sequenceName, 0);
+								logln("\nMemory available (InterpretFASTAtoNucFreq): " + MesquiteTrunk.getMaxAvailableMemory());
 
 							}
 
