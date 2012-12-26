@@ -179,7 +179,21 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 		dialog.completeAndShowDialog(true);
 		if (buttonPressed.getValue()==0)  {
-			blastOption = blastRadioButtons.getValue();
+			switch (blastRadioButtons.getValue()) {
+			case 0: 
+				blastOption = Blaster.DONTBLAST;
+				break;
+			case 1: 
+				blastOption = Blaster.BLAST;
+				break;
+			case 2: 
+				blastOption = Blaster.BLASTX;
+				break;
+			default: 
+				blastOption = Blaster.DONTBLAST;
+				break;
+			}
+			
 			lowerBlastSequenceLength = blastLowerLengthField.getValue();
 			eValueCutoff = eValueCutoffField.getValue();
 			numHits = numHitsField.getValue();
