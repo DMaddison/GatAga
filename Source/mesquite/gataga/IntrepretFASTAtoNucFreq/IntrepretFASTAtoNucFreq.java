@@ -141,13 +141,54 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 	Choice[] blastSeparateCriterionChoice;
 	Button[] criterionOption;
+	
+	/*.................................................................................................................*/
+	private int queryBlastChoiceIndexToBlastOption(int radioButtonIndex){
+		int option = Blaster.DONTBLAST;
+		switch (radioButtonIndex) {
+		case 0: 
+			option = Blaster.DONTBLAST;
+			break;
+		case 1: 
+			option = Blaster.BLAST;
+			break;
+		case 2: 
+			option = Blaster.BLASTX;
+			break;
+		default: 
+			option = Blaster.DONTBLAST;
+			break;
+		}
+		return option;
+	}
+	/*.................................................................................................................*/
+	private int blastOptionToBlastChoiceIndex(int blastType){
+		int radioButtonIndex = 0;
+		switch (blastType) {
+		case Blaster.DONTBLAST: 
+			radioButtonIndex = 0;
+			break;
+		case Blaster.BLAST: 
+			radioButtonIndex = 1;
+			break;
+		case Blaster.BLASTX: 
+			radioButtonIndex = 2;
+			break;
+		default: 
+			radioButtonIndex = 0;
+			break;
+		}
+		return radioButtonIndex;
+	}
+
 	/*.................................................................................................................*/
 	public boolean queryOptions() {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
 		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), getName() + " Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
 		dialog.addLabel(getName() + " Options");
 
-		RadioButtons blastRadioButtons= dialog.addRadioButtons(new String[] {"don't BLAST", "BLAST", "BLASTX"}, blastOption);
+		int startingBlastChoiceIndex = blastOptionToBlastChoiceIndex(blastOption);
+		RadioButtons blastRadioButtons= dialog.addRadioButtons(new String[] {"don't BLAST", "BLAST", "BLASTX"}, startingBlastChoiceIndex);
 		IntegerField blastLowerLengthField = dialog.addIntegerField("Lower length limit of sequences to be BLASTed:", lowerBlastSequenceLength, 10, 10, Integer.MAX_VALUE);
 		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", numHits, 8, 1, Integer.MAX_VALUE);
 		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
@@ -179,21 +220,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 		dialog.completeAndShowDialog(true);
 		if (buttonPressed.getValue()==0)  {
-			switch (blastRadioButtons.getValue()) {
-			case 0: 
-				blastOption = Blaster.DONTBLAST;
-				break;
-			case 1: 
-				blastOption = Blaster.BLAST;
-				break;
-			case 2: 
-				blastOption = Blaster.BLASTX;
-				break;
-			default: 
-				blastOption = Blaster.DONTBLAST;
-				break;
-			}
-			
+			blastOption = queryBlastChoiceIndexToBlastOption(blastRadioButtons.getValue());
 			lowerBlastSequenceLength = blastLowerLengthField.getValue();
 			eValueCutoff = eValueCutoffField.getValue();
 			numHits = numHitsField.getValue();
@@ -316,7 +343,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			MesquiteFile.putFileContents(directory + fileName, contents, true);
 			return;
 		}
-		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {
+		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {  //one to processes
 			int match = blastSequesterCriteriaTask[taskNumber].getCriterionMatch(blastResults);
 			if (match>=0) {
 				String newDir = blastSequesterCriteriaTask[taskNumber].getDirectoryName(match);
@@ -326,7 +353,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					newDir = directory;
 				saveInCriterionDirectory(blastResults, contents, newDir, fileName, taskNumber+1);
 			}	
-		} else if (taskNumber==blastSequesterCriteriaTask.length-1){
+		} else if (blastSequesterCriteriaTask[taskNumber]==null || !blastSequesterCriteriaTask[taskNumber].isActive()) {
+			saveInCriterionDirectory(blastResults, contents, directory, fileName, taskNumber+1);
+		}
+		else if (taskNumber==blastSequesterCriteriaTask.length-1){
 			MesquiteFile.putFileContents(directory + fileName, contents, true);
 		}
 	}
@@ -346,6 +376,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					newDir = directory;
 				appendInCriterionDirectory(blastResults, contents, newDir, fileName, taskNumber+1);
 			}	
+		} else if (blastSequesterCriteriaTask[taskNumber]==null || !blastSequesterCriteriaTask[taskNumber].isActive()) {
+			appendInCriterionDirectory(blastResults, contents, directory, fileName, taskNumber+1);
 		} else if (taskNumber==blastSequesterCriteriaTask.length-1){
 			MesquiteFile.appendFileContents(directory + fileName, contents, true);
 		}
