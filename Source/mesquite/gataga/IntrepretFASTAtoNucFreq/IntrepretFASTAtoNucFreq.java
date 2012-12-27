@@ -577,13 +577,18 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 				if (length>=lowerBlastSequenceLength && (blastOption!=Blaster.DONTBLAST)){
 					loglnEchoToStringBuffer("\nBLASTing  " + sequenceName, blastReport);
 					loglnEchoToStringBuffer("   Sequence length: "+ length, blastReport);
+					logln("+++++++ 0");
 					BLASTResults blastResult = new BLASTResults(numHits);
 
 
+					logln("+++++++ 1");
 					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), numHits, eValueCutoff, response, taxonNumber==1);
+					logln("+++++++ 2");
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
+					logln("+++++++ 3");
 					blasterTask.postProcessingCleanup(blastResult);
+					logln("+++++++ 4");
 
 					
 					if (blastOption!=Blaster.DONTBLAST)
@@ -603,6 +608,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 						fastaBLASTResults.setLength(0);
 						// blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
+						logln("+++++++ 5");
 
 						String[] IDs = blastResult.getIDs();
 						logln("*** 0");
