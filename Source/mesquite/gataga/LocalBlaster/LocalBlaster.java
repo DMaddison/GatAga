@@ -198,6 +198,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			}
 			deleteSupportDirectory();
 			getProject().decrementProjectWindowSuppression();
+			logln("   === 5");
 			return results;
 		}
 		deleteSupportDirectory();
