@@ -91,7 +91,6 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 	/*.................................................................................................................*/
 	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime,  double eValueCutoff, StringBuffer blastResponse, boolean writeCommand) {
-		timer.timeSinceLast();
 		getProject().incrementProjectWindowSuppression();
 		
 		String unique = MesquiteTrunk.getUniqueIDBase();
@@ -123,9 +122,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
 
-		MesquiteTimer timer = new MesquiteTimer();
-		timer.start();
-		
+		timer.timeSinceLast();
 		
 		boolean success = ShellScriptUtil.executeAndWaitForShell(scriptPath, runningFilePath, null, true, getName(),null,null, this, true);
 
