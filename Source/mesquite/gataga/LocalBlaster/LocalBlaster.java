@@ -91,6 +91,8 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 	/*.................................................................................................................*/
 	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime,  double eValueCutoff, StringBuffer blastResponse, boolean writeCommand) {
+		logln("  |||  blastForMatches  0 ");
+		
 		getProject().incrementProjectWindowSuppression();
 		
 		String unique = MesquiteTrunk.getUniqueIDBase();
@@ -100,7 +102,10 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 		StringBuffer fileBuffer = new StringBuffer();
 		fileBuffer.append(NCBIUtil.createFastaString(sequenceName, sequence, isNucleotides));
+		logln("  |||  blastForMatches  1 ");
 		MesquiteFile.putFileContents(filePath, fileBuffer.toString(), true);
+		logln("  |||  blastForMatches  2 ");
+
 
 		String runningFilePath = rootDir + "running" + MesquiteFile.massageStringToFilePathSafe(unique);
 		String outFileName = "blastResults" + MesquiteFile.massageStringToFilePathSafe(unique);
@@ -120,19 +125,24 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			logln("blast command: \n" + blastCommand);
 
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
+		logln("  |||  blastForMatches  3 ");
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
+		logln("  |||  blastForMatches  4 ");
 
 		timer.timeSinceLast();
 		
 		boolean success = ShellScriptUtil.executeAndWaitForShell(scriptPath, runningFilePath, null, true, getName(),null,null, this, true);
+		logln("  |||  blastForMatches  5 ");
 
 		if (success){
 			String results = MesquiteFile.getFileContentsAsString(outFilePath, -1, 1000, false);
+			logln("  |||  blastForMatches  6 ");
 			if (blastResponse!=null && StringUtil.notEmpty(results)){
 				blastResponse.setLength(0);
 				blastResponse.append(results);
 			}
 		}
+		logln("  |||  blastForMatches  7 ");
 		deleteSupportDirectory();
 		getProject().decrementProjectWindowSuppression();
 		logln("Blast completed in " +timer.timeSinceLastInSeconds()+" seconds");
