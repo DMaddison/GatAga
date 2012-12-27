@@ -143,6 +143,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	
 	/*.................................................................................................................*/
 	public String getFastaFromIDs(String[] idList, boolean isNucleotides, StringBuffer blastResponse) {
+		logln("   === 1");
 		int count = 0;
 		for (int i=0; i<idList.length; i++) 
 			if (StringUtil.notEmpty(idList[i]))
@@ -184,10 +185,13 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
 
+		logln("   === 2");
 		boolean success = ShellScriptUtil.executeAndWaitForShell(scriptPath, runningFilePath, null, true, getName(),null,null, this, true);
-		
+		logln("   === 3 outfilePath: "+outFilePath);
+	
 		if (success){
 			String results = MesquiteFile.getFileContentsAsString(outFilePath, -1, 1000, false);
+			logln("   === 4 results.length "+results.length());
 			if (blastResponse!=null && StringUtil.notEmpty(results)){
 				blastResponse.setLength(0);
 				blastResponse.append(results);
