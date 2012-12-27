@@ -321,6 +321,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 	}
 	/*.................................................................................................................*/
 	private void saveInAllCriterionDirectories(String contents, String directory, String fileName, int taskNumber){
+		logln("saveInAllCriterionDirectories : " + taskNumber);
 		if (taskNumber>=blastSequesterCriteriaTask.length){
 			MesquiteFile.putFileContents(directory + fileName, contents, true);
 			return;
@@ -339,8 +340,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 	/*.................................................................................................................*/
 	private void saveInCriterionDirectory(BLASTResults blastResults, String contents, String directory, String fileName, int taskNumber){
-		if (taskNumber>6)
-			logln("saveInCriterionDirectory : " + taskNumber);
+		logln("saveInCriterionDirectory : " + taskNumber);
 		if (taskNumber>=blastSequesterCriteriaTask.length){
 			MesquiteFile.putFileContents(directory + fileName, contents, true);
 			return;
@@ -364,8 +364,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 	}
 	/*.................................................................................................................*/
 	private void appendInCriterionDirectory(BLASTResults blastResults, String contents, String directory, String fileName, int taskNumber){
-		if (taskNumber>6)
-			logln("appendInCriterionDirectory : " + taskNumber);
+		logln("appendInCriterionDirectory : " + taskNumber);
 		if (taskNumber>=blastSequesterCriteriaTask.length){
 			MesquiteFile.appendFileContents(directory + fileName, contents, true);
 			return;
