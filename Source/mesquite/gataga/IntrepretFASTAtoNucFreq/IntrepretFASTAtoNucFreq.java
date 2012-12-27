@@ -305,6 +305,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 	}
 	/*.................................................................................................................*/
 	private void createCriteriaDirectories(String directory,int taskNumber){
+		logln("createCriteriaDirectories : " + taskNumber);
 		if (taskNumber>=blastSequesterCriteriaTask.length)
 			return;
 		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {
@@ -333,6 +334,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					saveInAllCriterionDirectories(contents, directory+subDirectories[j]+MesquiteFile.fileSeparator, fileName, taskNumber+1);
 				}	
 			}
+		} else if (blastSequesterCriteriaTask[taskNumber]==null || !blastSequesterCriteriaTask[taskNumber].isActive()) {
+			saveInAllCriterionDirectories(contents, directory, fileName, taskNumber+1);
 		} else if (taskNumber==blastSequesterCriteriaTask.length-1){
 			MesquiteFile.putFileContents(directory + fileName, contents, true);
 		}
@@ -602,10 +605,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 						// blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 
 						String[] IDs = blastResult.getIDs();
+						logln("*** 0");
 						if (IDs!=null) {
 							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
 						}
 
+						logln("*** 1");
 						if (storeBlastSequences) {
 							if (blastOption==Blaster.BLASTX){
 								//blastResult.setIDFromDefinition("|", 2);
@@ -613,14 +618,19 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 								IDs = blasterTask.getNucleotideIDsfromProteinIDs(IDs);
 								// IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
 							}
+							logln("*** 2");
 
+							logln("*** 3");
 							String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
+							logln("*** 4");
 							if (StringUtil.notEmpty(fasta)) {	
 								//Debugg.println(blastResult.reversedToString());
 								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
 								String fileName = "";
 
+								logln("*** 5 + fastaBLASTResults.length: "+fastaBLASTResults.length());
 								saveInCriterionDirectory(blastResult, fastaBLASTResults.toString(), pathForBLASTfiles, sequenceName, 0);
+								logln("*** 6");
 								logln("\nMemory available (InterpretFASTAtoNucFreq): " + MesquiteTrunk.getMaxAvailableMemory());
 
 							}

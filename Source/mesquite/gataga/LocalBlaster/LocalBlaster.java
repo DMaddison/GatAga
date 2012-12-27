@@ -143,15 +143,15 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	
 	/*.................................................................................................................*/
 	public String getFastaFromIDs(String[] idList, boolean isNucleotides, StringBuffer blastResponse) {
-		if (blastx)
-			return NCBIUtil.fetchGenBankSequencesFromIDs(idList,  isNucleotides, null, false,  blastResponse,  null);
-
 		int count = 0;
 		for (int i=0; i<idList.length; i++) 
 			if (StringUtil.notEmpty(idList[i]))
 				count++;
 		if (count==0)
 			return null;
+		if (blastx)
+			return NCBIUtil.fetchGenBankSequencesFromIDs(idList,  isNucleotides, null, false,  blastResponse,  null);
+
 		count = 0;
 		StringBuffer queryString = new StringBuffer();
 		for (int i=0; i<idList.length; i++) 
