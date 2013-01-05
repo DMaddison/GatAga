@@ -91,7 +91,6 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 	/*.................................................................................................................*/
 	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime,  double eValueCutoff, StringBuffer blastResponse, boolean writeCommand) {
-		logln("  |||  blastForMatches  0 ");
 		
 		getProject().incrementProjectWindowSuppression();
 		
@@ -102,9 +101,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 
 		StringBuffer fileBuffer = new StringBuffer();
 		fileBuffer.append(NCBIUtil.createFastaString(sequenceName, sequence, isNucleotides));
-		logln("  |||  blastForMatches  1 ");
 		MesquiteFile.putFileContents(filePath, fileBuffer.toString(), true);
-		logln("  |||  blastForMatches  2 ");
 
 
 		String runningFilePath = rootDir + "running" + MesquiteFile.massageStringToFilePathSafe(unique);
@@ -125,24 +122,19 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			logln("blast command: \n" + blastCommand);
 
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
-		logln("  |||  blastForMatches  3 ");
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
-		logln("  |||  blastForMatches  4 ");
 
 		timer.timeSinceLast();
 		
 		boolean success = ShellScriptUtil.executeAndWaitForShell(scriptPath, runningFilePath, null, true, getName(),null,null, this, true);
-		logln("  |||  blastForMatches  5 ");
 
 		if (success){
 			String results = MesquiteFile.getFileContentsAsString(outFilePath, -1, 1000, false);
-			logln("  |||  blastForMatches  6 ");
 			if (blastResponse!=null && StringUtil.notEmpty(results)){
 				blastResponse.setLength(0);
 				blastResponse.append(results);
 			}
 		}
-		logln("  |||  blastForMatches  7 ");
 		deleteSupportDirectory();
 		getProject().decrementProjectWindowSuppression();
 		logln("Blast completed in " +timer.timeSinceLastInSeconds()+" seconds");
@@ -150,7 +142,6 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	
 	/*.................................................................................................................*/
 	public String getFastaFromIDs(String[] idList, boolean isNucleotides, StringBuffer blastResponse) {
-		logln("   === 1");
 		int count = 0;
 		for (int i=0; i<idList.length; i++) 
 			if (StringUtil.notEmpty(idList[i]))
@@ -192,20 +183,16 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);
 
-		logln("   === 2");
 		boolean success = ShellScriptUtil.executeAndWaitForShell(scriptPath, runningFilePath, null, true, getName(),null,null, this, true);
-		logln("   === 3 outfilePath: "+outFilePath);
 	
 		if (success){
 			String results = MesquiteFile.getFileContentsAsString(outFilePath, -1, 1000, false);
-			logln("   === 4 results.length "+results.length());
 			if (blastResponse!=null && StringUtil.notEmpty(results)){
 				blastResponse.setLength(0);
 				blastResponse.append(results);
 			}
 			deleteSupportDirectory();
 			getProject().decrementProjectWindowSuppression();
-			logln("   === 5");
 			return results;
 		}
 		deleteSupportDirectory();

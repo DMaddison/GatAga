@@ -577,18 +577,13 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 				if (length>=lowerBlastSequenceLength && (blastOption!=Blaster.DONTBLAST)){
 					loglnEchoToStringBuffer("\nBLASTing  " + sequenceName, blastReport);
 					loglnEchoToStringBuffer("   Sequence length: "+ length, blastReport);
-					logln("+++++++ 0");
 					BLASTResults blastResult = new BLASTResults(numHits);
 
 
-					logln("+++++++ 1");
 					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), numHits, eValueCutoff, response, taxonNumber==1);
-					logln("+++++++ 2");
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
-					logln("+++++++ 3");
 					blasterTask.postProcessingCleanup(blastResult);
-					logln("+++++++ 4");
 
 					
 					if (blastOption!=Blaster.DONTBLAST)
@@ -608,15 +603,12 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 						fastaBLASTResults.setLength(0);
 						// blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
-						logln("+++++++ 5");
 
 						String[] IDs = blastResult.getIDs();
-						logln("*** 0");
 						if (IDs!=null) {
 							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
 						}
 
-						logln("*** 1");
 						if (storeBlastSequences) {
 							if (blastOption==Blaster.BLASTX){
 								//blastResult.setIDFromDefinition("|", 2);
@@ -624,22 +616,18 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 								IDs = blasterTask.getNucleotideIDsfromProteinIDs(IDs);
 								// IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
 							}
-							logln("*** 2");
 
-							logln("*** 3");
 							String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
-							logln("*** 4");
 							if (StringUtil.notEmpty(fasta)) {	
 								//Debugg.println(blastResult.reversedToString());
 								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
 								String fileName = "";
 
-								logln("*** 5 + fastaBLASTResults.length: "+fastaBLASTResults.length());
 								saveInCriterionDirectory(blastResult, fastaBLASTResults.toString(), pathForBLASTfiles, sequenceName, 0);
-								logln("*** 6");
 								logln("\nMemory available (InterpretFASTAtoNucFreq): " + MesquiteTrunk.getMaxAvailableMemory());
 
 							}
+							fasta = "";
 
 						}
 						if (fetchTaxonomy) {
