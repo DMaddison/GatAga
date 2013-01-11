@@ -427,15 +427,16 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			loglnEchoToStringBuffer("   Blasting sequences at least "+ lowerBlastSequenceLength + " bases long", blastReport);
 			if (eValueCutoff>=0.0) 
 				loglnEchoToStringBuffer("   Only keeping hits with e-values less than or equal to "+ eValueCutoff, blastReport);
-			if (saveTopHits&& StringUtil.blank(pathForBLASTfiles)) {
+			if ((saveTopHits || resaveFastaFile) && StringUtil.blank(pathForBLASTfiles)) {
 				pathForBLASTfiles = MesquiteFile.chooseDirectory("Choose directory to store BLAST results: ");
 				if (StringUtil.blank(pathForBLASTfiles))
 					storeBlastSequences = false;
 				else if (!pathForBLASTfiles.endsWith(MesquiteFile.fileSeparator))
 					pathForBLASTfiles+=MesquiteFile.fileSeparator;
 			}
-			if (storeBlastSequences) {
-				loglnEchoToStringBuffer("   Saving FASTA files for top blast hits", blastReport);
+			if (storeBlastSequences || resaveFastaFile) {
+				if (saveTopHits) 
+					loglnEchoToStringBuffer("   Saving FASTA files for top blast hits", blastReport);
 
 				//	int numBlastSeparateCriteria = 3;
 				//	BlastSeparateCriterion[] blastSequesterCriteriaTask = new BlastSeparateCriterion[numBlastSeparateCriteria];
