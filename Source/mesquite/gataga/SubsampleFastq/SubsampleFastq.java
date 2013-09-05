@@ -23,6 +23,7 @@ public class SubsampleFastq extends UtilitiesAssistant {
 	RandomBetween rng = new RandomBetween();
 	double sampleFreq = 0.5;
 	boolean pairedFiles = false;
+	boolean allInDirectory = false;
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		loadPreferences();
@@ -35,6 +36,8 @@ public class SubsampleFastq extends UtilitiesAssistant {
 	public void processSingleXMLPreference (String tag, String content) {
 		if ("pairedFiles".equalsIgnoreCase(tag))
 			pairedFiles = MesquiteBoolean.fromTrueFalseString(content);
+		else if ("allInDirectory".equalsIgnoreCase(tag))
+			allInDirectory = MesquiteBoolean.fromTrueFalseString(content);
 		else if ("sampleFreq".equalsIgnoreCase(tag))
 			sampleFreq = MesquiteDouble.fromString(content);		
 	}
@@ -42,6 +45,7 @@ public class SubsampleFastq extends UtilitiesAssistant {
 	public String preparePreferencesForXML () {
 		StringBuffer buffer = new StringBuffer();	
 		StringUtil.appendXMLTag(buffer, 2, "pairedFiles", pairedFiles);  
+		StringUtil.appendXMLTag(buffer, 2, "allInDirectory", allInDirectory);  
 		StringUtil.appendXMLTag(buffer, 2, "sampleFreq", sampleFreq);  
 		return buffer.toString();
 	}
@@ -53,9 +57,11 @@ public class SubsampleFastq extends UtilitiesAssistant {
 
 		DoubleField sampleFreqField = dialog.addDoubleField("Probability of sampling a read: ", sampleFreq, 8, 0.0, 1.0);
 		Checkbox pairedFilesBox = dialog.addCheckBox("Paired Files", pairedFiles);
+		Checkbox directoryBox = dialog.addCheckBox("Sample All Files In Directory", allInDirectory);
 
 		dialog.completeAndShowDialog(true);
 		if (buttonPressed.getValue()==0)  {
+			allInDirectory = directoryBox.getState();
 			pairedFiles = pairedFilesBox.getState();
 			sampleFreq = sampleFreqField.getValue();
 			storePreferences();
@@ -69,7 +75,10 @@ public class SubsampleFastq extends UtilitiesAssistant {
 			if (!MesquiteThread.isScripting())
 				if (!queryOptions()) 
 					return null;
-			subsample();
+			if (allInDirectory) 
+				subsampleDirectory();
+			else
+				subsampleFile();
 		}
 		else
 			return super.doCommand(commandName, arguments, checker);
@@ -169,7 +178,7 @@ public class SubsampleFastq extends UtilitiesAssistant {
 		decrementMenuResetSuppression();
 	}
 	/*.................................................................................................................*/
-	public void subsample() {
+	public void subsampleFile() {
 		int numFiles = 1;
 		if (pairedFiles) 
 			numFiles=2;
@@ -188,6 +197,30 @@ public class SubsampleFastq extends UtilitiesAssistant {
 		}
 		processFile(fileToRead, fileToWrite);
 
+	}
+	/*.................................................................................................................*/
+	public void subsampleDirectory() {
+/*		int numFiles = 1;
+		if (pairedFiles) 
+			numFiles=2;
+		MesquiteFile[] fileToWrite = new MesquiteFile[numFiles];
+		MesquiteFile[] fileToRead = new MesquiteFile[numFiles];
+		MesquiteString directory = new MesquiteString();
+		MesquiteString fileName = new MesquiteString();
+		String fullPath = MesquiteFile.chooseDirectory("Choose directory containing files to sample");
+		for (int i=0; i<numFiles; i++) {
+			MesquiteString directory = new MesquiteString();
+			MesquiteString fileName = new MesquiteString();
+			String fullPath = MesquiteFile.openFileDialog("Choose FASTQ file " + (i+1) + " to sample", directory, fileName);
+			if (StringUtil.blank(fullPath))
+				return;
+			fileToWrite[i] = new MesquiteFile();
+			fileToWrite[i].setPath(directory+"Sampled"+fileName);
+			fileToRead[i] = new MesquiteFile();
+			fileToRead[i].setPath(fullPath);
+		}
+		processFile(fileToRead, fileToWrite);
+*/
 	}
 
 	/*.................................................................................................................*
