@@ -651,8 +651,15 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					}
 				if (pos>0 && taxonNumber>20) {
 					double timeSoFar = timer.timeSinceVeryStartInSeconds();
-					String timeRemaining = StringUtil.secondsToHHMMSS((int)((timeSoFar/pos)*(file.existingLength()-pos)));
+					double timePerFileUnit = timeSoFar/pos;
+					long fileLengthLeftToRead = file.existingLength()-pos;
+					String timeRemaining = StringUtil.secondsToHHMMSS((int)(timePerFileUnit*fileLengthLeftToRead));
 					logln("   Estimated time remaining: " + timeRemaining);
+					logln("     pos: " + pos);
+					logln("     file.existingLength(): " + file.existingLength());
+					logln("     timeSoFar: " + timeSoFar);
+					logln("     timePerFileUnit: " + timePerFileUnit);
+					logln("     fileLengthLeftToRead: " + fileLengthLeftToRead);
 				}
 
 
