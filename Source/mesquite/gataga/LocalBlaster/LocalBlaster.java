@@ -137,7 +137,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		}
 		deleteSupportDirectory();
 		getProject().decrementProjectWindowSuppression();
-		logln("Blast completed in " +timer.timeSinceLastInSeconds()+" seconds");
+		logln("   BLAST completed in " +timer.timeSinceLastInSeconds()+" seconds");
 	}	
 	
 	/*.................................................................................................................*/
