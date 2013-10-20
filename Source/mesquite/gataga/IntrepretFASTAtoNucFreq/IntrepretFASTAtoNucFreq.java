@@ -44,7 +44,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 	boolean saveTopHits = false;
 	boolean resaveFastaFile = false;
 	double eValueCutoff = 10.0;
-	int numHits = 5;
+	int maxHits = 5;
 	//	boolean idIsNameInLocalFastaFile = false;
 	String localFastaFilePath = null;
 
@@ -110,8 +110,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			blastOption = MesquiteInteger.fromString(content);
 		else if ("lowerBlastSequenceLength".equalsIgnoreCase(tag))
 			lowerBlastSequenceLength = MesquiteInteger.fromString(content);
-		else if ("numHits".equalsIgnoreCase(tag))
-			numHits = MesquiteInteger.fromString(content);		
+		else if ("maxHits".equalsIgnoreCase(tag))
+			maxHits = MesquiteInteger.fromString(content);		
 		else if ("eValueCutoff".equalsIgnoreCase(tag))
 			eValueCutoff = MesquiteDouble.fromString(content);		
 		else {
@@ -129,7 +129,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		StringUtil.appendXMLTag(buffer, 2, "resaveFastaFile", resaveFastaFile);  
 		StringUtil.appendXMLTag(buffer, 2, "blastOption", blastOption);  
 		StringUtil.appendXMLTag(buffer, 2, "lowerBlastSequenceLength", lowerBlastSequenceLength);  
-		StringUtil.appendXMLTag(buffer, 2, "numHits", numHits);  
+		StringUtil.appendXMLTag(buffer, 2, "maxHits", maxHits);  
 		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
 		for (int i = 0; i < numBlastSeparateCriteria; i++) {
 			if (blastSequesterCriteriaTask[i]!=null && blastSequesterCriteriaTask[i].pleaseRecord())
@@ -190,7 +190,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		int startingBlastChoiceIndex = blastOptionToBlastChoiceIndex(blastOption);
 		RadioButtons blastRadioButtons= dialog.addRadioButtons(new String[] {"don't BLAST", "BLAST", "BLASTX"}, startingBlastChoiceIndex);
 		IntegerField blastLowerLengthField = dialog.addIntegerField("Lower length limit of sequences to be BLASTed:", lowerBlastSequenceLength, 10, 10, Integer.MAX_VALUE);
-		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", numHits, 8, 1, Integer.MAX_VALUE);
+		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", maxHits, 8, 1, Integer.MAX_VALUE);
 		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
 		Checkbox resaveFastaFileBox = dialog.addCheckBox("Save copy of original FASTA file but with names appended with top hit", resaveFastaFile);
 		dialog.addHorizontalLine(2);
@@ -223,7 +223,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			blastOption = queryBlastChoiceIndexToBlastOption(blastRadioButtons.getValue());
 			lowerBlastSequenceLength = blastLowerLengthField.getValue();
 			eValueCutoff = eValueCutoffField.getValue();
-			numHits = numHitsField.getValue();
+			maxHits = numHitsField.getValue();
 			saveTopHits = saveTopHitsBox.getState();
 			resaveFastaFile = resaveFastaFileBox.getState();
 			fetchTaxonomy = fetchTaxonomyBox.getState();
@@ -370,7 +370,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		}
 		if (blastSequesterCriteriaTask[taskNumber]!=null && blastSequesterCriteriaTask[taskNumber].isActive()) {
 			int match = blastSequesterCriteriaTask[taskNumber].getCriterionMatch(blastResults);
-			if (match>=0) {
+			if (blastResults.getNumHits()>0 && match>=0) {
 				String newDir = blastSequesterCriteriaTask[taskNumber].getDirectoryName(match);
 				if (StringUtil.notEmpty(newDir))
 					newDir = directory + newDir +MesquiteFile.fileSeparator;
@@ -394,7 +394,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		data.saveChangeHistory = false;
 		Parser subParser = new Parser();
 		long pos = 0;
-		StringArray accessionNumbers = new StringArray(numHits);
+		StringArray accessionNumbers = new StringArray(maxHits);
 
 		StringBuffer sb = new StringBuffer(1000);
 		if (file!=null)
@@ -574,10 +574,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 				if (length>=lowerBlastSequenceLength && (blastOption!=Blaster.DONTBLAST)){
 					loglnEchoToStringBuffer("\nBLASTing  " + sequenceName, blastReport);
 					loglnEchoToStringBuffer("   Sequence length: "+ length, blastReport);
-					BLASTResults blastResult = new BLASTResults(numHits);
+					BLASTResults blastResult = new BLASTResults(maxHits);
 
 
-					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), numHits, eValueCutoff, response, taxonNumber==1);
+					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), maxHits, eValueCutoff, response, taxonNumber==1);
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 					blasterTask.postProcessingCleanup(blastResult);
@@ -591,6 +591,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					} else if (blastResult.geteValue(0)>eValueCutoff) {
 						loglnEchoToStringBuffer("   No acceptable hits.", blastReport);
 					} else {
+						
 						Associable associable = data.getTaxaInfo(true);
 						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
 						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
@@ -603,7 +604,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 						String[] IDs = blastResult.getIDs();
 						if (IDs!=null) {
-							loglnEchoToStringBuffer(blastResult.toString(numHits), blastReport);
+							loglnEchoToStringBuffer(blastResult.toString(maxHits), blastReport);
 						}
 
 						if (storeBlastSequences) {
