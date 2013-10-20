@@ -419,6 +419,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		String pathForBlastReport = null;
 		String pathForResavedFile = null;
 		String pathForUnhitFiles = null;
+		MesquiteTimer timer = new MesquiteTimer();
+		timer.start();
 
 		blasterTask.setBlastType(blastOption);
 
@@ -647,6 +649,11 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 						MesquiteFile.appendFileContents(pathForResavedFile, modOriginal, true);
 						appendInCriterionDirectory(blastResult, modOriginal, pathForBLASTfiles, "OriginalSequences.fa", 0);
 					}
+				if (pos>0 && taxonNumber>20) {
+					double timeSoFar = timer.timeSinceVeryStartInSeconds();
+					String timeRemaining = StringUtil.secondsToHHMMSS((int)((timeSoFar/pos)*(file.existingLength()-pos)));
+					logln("   Estimated remaining: " + timeRemaining);
+				}
 
 
 				}
@@ -663,6 +670,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 				line = parser.getRawNextDarkLine();
 				pos = parser.getPosition();
 			}
+			
 			subParser.setString(line); //sets the string to be used by the parser to "line" and sets the pos to 0
 
 			if (file !=null && file.getFileAborted()) {
