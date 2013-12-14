@@ -394,7 +394,6 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		data.saveChangeHistory = false;
 		Parser subParser = new Parser();
 		long pos = 0;
-		long startPos=0;
 		StringArray accessionNumbers = new StringArray(maxHits);
 
 		StringBuffer sb = new StringBuffer(1000);
@@ -650,18 +649,17 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 						MesquiteFile.appendFileContents(pathForResavedFile, modOriginal, true);
 						appendInCriterionDirectory(blastResult, modOriginal, pathForBLASTfiles, "OriginalSequences.fa", 0);
 					}
-				if (pos>0 && taxonNumber>20 && file!=null) {
+				if (pos>0 && taxonNumber>20) {
 					double timeSoFar = timer.timeSinceVeryStartInSeconds();
-					double timePerFileUnit = timeSoFar/(pos-startPos);
+					double timePerFileUnit = timeSoFar/pos;
 					long fileLengthLeftToRead = file.existingLength()-pos;
 					String timeRemaining = StringUtil.secondsToHHMMSS((int)(timePerFileUnit*fileLengthLeftToRead));
 					logln("   Estimated time remaining: " + timeRemaining);
-					logln("     startPos: " + startPos);
 					logln("     pos: " + pos);
 					logln("     file.existingLength(): " + file.existingLength());
-					logln("     fileLengthLeftToRead: " + fileLengthLeftToRead);
 					logln("     timeSoFar: " + timeSoFar);
 					logln("     timePerFileUnit: " + timePerFileUnit);
+					logln("     fileLengthLeftToRead: " + fileLengthLeftToRead);
 				}
 
 
@@ -673,14 +671,10 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			//			file.readLine(sb);
 			if (file!=null) {
 				line = file.readNextDarkLine();		// added 1.01
-				if (pos==0)
-					startPos = file.getFilePosition();
 				pos = file.getFilePosition();
 			}
 			else {
 				line = parser.getRawNextDarkLine();
-				if (pos==0)
-					startPos = parser.getPosition();
 				pos = parser.getPosition();
 			}
 			
