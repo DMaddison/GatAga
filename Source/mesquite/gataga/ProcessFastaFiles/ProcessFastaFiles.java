@@ -166,7 +166,8 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	/*.................................................................................................................*/
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
 		
-		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), proteinCoding);
+			
+			MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), proteinCoding);
 		MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
 		if (proteinCoding){
 			MolecularDataUtil.setCodonPositionsToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
@@ -206,10 +207,37 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 			fileToWrite.setFileName(fileToRead.getFileName()+".nex");
 
+			//	importer.readFile(getProject(), fileToRead, arguments);	
 			importer.readFileCore(parser, fileToRead, data,  taxa, numTaxa, progIndicator, arguments, true);	
+			
+			
+			if (alterer1 == null){
+				alterer1 = (FileAlterer)project.getCoordinatorModule().hireEmployee(FileAlterer.class, "File processor (1)");
+			}
+			Debugg.println("matrices " + project.getNumberCharMatrices());
+			if (project.getNumberCharMatrices()>0)
+				Debugg.println("matrix " + project.getCharacterMatrix(0).getName());
+				
+			if (alterer2 == null){
+				alterer2 = (FileAlterer)project.getCoordinatorModule().hireEmployee(FileAlterer.class, "File processor (2)");
+			}
 
-			boolean proteinCoding = true;  // query about this  
-			processData((DNAData)data, taxa, proteinCoding);   // query about this
+			 boolean proteinCoding = true;  // query about this  
+			boolean success = alterer1.alterFile(fileToWrite);
+			
+			if (!success)
+				Debugg.println("Sorry, altering " + fileToRead.getFileName()+".nex did not succeed");
+			else
+				Debugg.println("Successfully altered " + fileToRead.getFileName()+".nex!");
+			
+			 success = alterer2.alterFile(fileToWrite);
+			
+			if (!success)
+				Debugg.println("Sorry, altering " + fileToRead.getFileName()+".nex did not succeed");
+			else
+				Debugg.println("Successfully altered " + fileToRead.getFileName()+".nex!");
+	
+//processData((DNAData)data, taxa, proteinCoding);   // query about this
 
 						
 			writeFile(fileToWrite);
@@ -223,6 +251,8 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		decrementMenuResetSuppression();
 	}
 	/*.................................................................................................................*/
+	FileAlterer alterer1;
+	FileAlterer alterer2;
 	private void processDirectory(String directoryPath){
 		if (StringUtil.blank(directoryPath))
 			return;
@@ -233,6 +263,8 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		String path = "";
 		if (directory!=null) {
 			if (directory.exists() && directory.isDirectory()) {
+				//Hire file alterers
+			
 				String[] files = directory.list();
 				progIndicator = new ProgressIndicator(null,"Processing Folder of Fasta Files", files.length);
 				progIndicator.start();

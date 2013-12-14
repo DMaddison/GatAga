@@ -4,6 +4,7 @@ import java.util.*;
 import java.lang.*;
 import java.awt.*;
 import java.awt.image.*;
+
 import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
@@ -15,9 +16,10 @@ import mesquite.align.lib.*;
 
 /* ======================================================================== */
 public class CleanUpMatrix extends CategDataAlterer {
-	
+	CategDataAlterer aligner;
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
+		aligner= (CategDataAlterer)hireNamedEmployee(CategDataAlterer.class, "#MultipleAlignService");
 		return true;
 	}
 	/*.................................................................................................................*/
@@ -122,10 +124,13 @@ public String preparePreferencesForXML () {
 	}
 	/*.................................................................................................................*/
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
-		
+		Debugg.println(" reverseComplementSequencesIfNecessary");
 		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false);
-		MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
+		Debugg.println(" pairwiseAlignMatrix");
+		aligner.alterData(data, null,  null);
+	//	MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
 		if (proteinCoding){
+			Debugg.println(" setCodonPositionsToMinimizeStops");
 			MolecularDataUtil.setCodonPositionsToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
 			//MolecularDataUtil.shiftToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
 		}
@@ -137,12 +142,17 @@ public String preparePreferencesForXML () {
 	/*.................................................................................................................*/
    	/** Called to alter data in those cells selected in table*/
    	public boolean alterData(CharacterData data, MesquiteTable table,  UndoReference undoReference){
-		if (data==null || table==null)
+		if (data==null)
 			return false;
 		
 		if (!(data instanceof DNAData))
 			return false;
+	//	try{
 		processData((DNAData)data,data.getTaxa(),true);
+//		}
+//		catch (ArrayIndexOutOfBoundsException e){
+//			return false;
+//		}
 		return true;
    	}
    	
