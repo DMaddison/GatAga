@@ -13,6 +13,7 @@ GNU Lesser General Public License.  (http://www.gnu.org/copyleft/lesser.html)
 package mesquite.gataga.ProcessFastaFiles; 
 
 import java.io.*;
+import java.util.Vector;
 
 import org.apache.commons.lang.SystemUtils;
 
@@ -60,7 +61,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	public CharacterData createData(CharactersManager charTask, Taxa taxa) {  
 		return charTask.newCharacterData(taxa, 0, DNAData.DATATYPENAME);  //
 	}
-	
+
 	/*.................................................................................................................*/
 	private void append(StringBuffer sb, int numTabs, String content) {
 		sb.append("\n");
@@ -77,7 +78,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		sb.append("\nBegin MESQUITE;");
 		append(sb,1,"MESQUITESCRIPTVERSION 2");
 		append(sb,1,"tell ProjectCoordinator");
-		
+
 		append(sb,1,"getWindow");
 		append(sb,1,"tell It");
 		append(sb,2,"setSize 1000 600");
@@ -122,14 +123,14 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		append(sb,2,"endTell");
 		append(sb,1,"endTell");
 
-		
+
 		append(sb,1,"getEmployee  #mesquite.charMatrices.BasicDataWindowCoord.BasicDataWindowCoord");
 		append(sb,1,"tell It");
 		append(sb,2,"showDataWindow #" + charID + " #mesquite.charMatrices.BasicDataWindowMaker.BasicDataWindowMaker");
 
 		append(sb,2,"tell It");
 		append(sb,3,"getWindow");
-		
+
 		append(sb,3,"tell It");
 		append(sb,4,"getTable");
 		append(sb,4,"tell It");
@@ -149,11 +150,11 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		append(sb,1,"endTell");
 		append(sb,1,"endTell");
 		sb.append("\nend;\n");
-		
+
 		return sb.toString();
 	}
-	
-	
+
+
 	/*.................................................................................................................*/
 	public void writeFile(MesquiteFile nMF){
 		NexusFileInterpreter nfi =(NexusFileInterpreter) fileCoord.findImmediateEmployeeWithDuty(NexusFileInterpreter.class);
@@ -165,20 +166,52 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 	/*.................................................................................................................*/
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
-		
-			
-			MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), proteinCoding);
+
+
+		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), proteinCoding);
 		MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
 		if (proteinCoding){
 			MolecularDataUtil.setCodonPositionsToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
 			//MolecularDataUtil.shiftToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
 		}
-// then alter taxon names
+		// then alter taxon names
 		//open character matrix
 		// color by amino acid if protein coding
-		
-	}
 
+	}
+	/*.................................................................................................................*/
+	public boolean showAlterDialog(int count) {
+		MesquiteInteger buttonPressed = new MesquiteInteger(1);
+		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Add File Alterer?",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		if (count == 0){
+			dialog.addLabel("For each file processed, do you want to alter it?");
+			dialog.completeAndShowDialog("Yes", "No", null, "No");
+		}
+		else {
+			dialog.addLabel("For each file processed, do you want to add another step in altering it?");
+			dialog.addLabel("The altering steps already requested are:");
+			String[] steps = new String[fileAlterers.size()];
+			for (int i = 0; i<steps.length; i++)
+				steps[i] = "(" + (i+1) + ") " + ((FileAlterer)fileAlterers.elementAt(i)).getName();
+			dialog.addList (steps, null, null, 8);
+			dialog.completeAndShowDialog("Add", "Done", null, "Done");
+		}
+		dialog.dispose();
+		return (buttonPressed.getValue()==0);
+	}
+	/*.................................................................................................................*/
+	Vector fileAlterers = null;
+	private void hireAlterersIfNeeded(){
+		int count = 0;
+		if (fileAlterers == null)
+			while (showAlterDialog(count)){
+				if (fileAlterers == null)
+					fileAlterers = new Vector();
+				count++;
+				FileAlterer alterer = (FileAlterer)project.getCoordinatorModule().hireEmployee(FileAlterer.class, "File processor (" + count+ ")");
+				fileAlterers.addElement(alterer);
+			}
+	}
 	/*.................................................................................................................*/
 	public void processFile(MesquiteFile fileToRead, String arguments) {
 		incrementMenuResetSuppression();
@@ -209,62 +242,53 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 			//	importer.readFile(getProject(), fileToRead, arguments);	
 			importer.readFileCore(parser, fileToRead, data,  taxa, numTaxa, progIndicator, arguments, true);	
-			
-			
-			if (alterer1 == null){
-				alterer1 = (FileAlterer)project.getCoordinatorModule().hireEmployee(FileAlterer.class, "File processor (1)");
-			}
-			Debugg.println("matrices " + project.getNumberCharMatrices());
-			if (project.getNumberCharMatrices()>0)
-				Debugg.println("matrix " + project.getCharacterMatrix(0).getName());
-				
-			if (alterer2 == null){
-				alterer2 = (FileAlterer)project.getCoordinatorModule().hireEmployee(FileAlterer.class, "File processor (2)");
-			}
 
-			 boolean proteinCoding = true;  // query about this  
-			boolean success = alterer1.alterFile(fileToWrite);
-			
-			if (!success)
-				Debugg.println("Sorry, altering " + fileToRead.getFileName()+".nex did not succeed");
-			else
-				Debugg.println("Successfully altered " + fileToRead.getFileName()+".nex!");
-			
-			 success = alterer2.alterFile(fileToWrite);
-			
-			if (!success)
-				Debugg.println("Sorry, altering " + fileToRead.getFileName()+".nex did not succeed");
-			else
-				Debugg.println("Successfully altered " + fileToRead.getFileName()+".nex!");
-	
-//processData((DNAData)data, taxa, proteinCoding);   // query about this
+			hireAlterersIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
 
-						
+			boolean proteinCoding = true;  // query about this  
+			if (fileAlterers != null){
+				boolean success = true;
+				for (int i= 0; i< fileAlterers.size() && success; i++){
+					FileAlterer alterer = (FileAlterer)fileAlterers.elementAt(i);
+					success = alterer.alterFile(fileToWrite);
+
+					if (!success)
+						Debugg.println("Sorry,  " + alterer.getName() + " did not succeed in altering the file " + fileToRead.getFileName()+".nex");
+					else
+						Debugg.println("" + alterer.getName() + " successfully altered the file " + fileToRead.getFileName()+".nex");
+				}
+			}
+			//processData((DNAData)data, taxa, proteinCoding);   // query about this
+
+
 			writeFile(fileToWrite);
 			MesquiteFile.appendFileContents(fileToWrite.getPath(), appendToFile(proteinCoding), true);
 			Debugg.println("================= wrote matrix ");
-			
-			data.deleteMe(false);
-			taxa.deleteMe(false);		
+
+			firstTime = false;
+			project.removeAllFileElements(CharacterData.class, false);	
+			project.removeAllFileElements(TreeVector.class, false);	
+			project.removeAllFileElements(Taxa.class, false);	
 
 		}
 		decrementMenuResetSuppression();
 	}
 	/*.................................................................................................................*/
-	FileAlterer alterer1;
-	FileAlterer alterer2;
+
+	boolean firstTime = true;
 	private void processDirectory(String directoryPath){
 		if (StringUtil.blank(directoryPath))
 			return;
 		File directory = new File(directoryPath);
 		//	parser = new Parser();
-
+		firstTime = true;
+		project.getCoordinatorModule().setWhomToAskIfOKToInteractWithUser(this);
 		boolean abort = false;
 		String path = "";
 		if (directory!=null) {
 			if (directory.exists() && directory.isDirectory()) {
 				//Hire file alterers
-			
+
 				String[] files = directory.list();
 				progIndicator = new ProgressIndicator(null,"Processing Folder of Fasta Files", files.length);
 				progIndicator.start();
@@ -289,6 +313,9 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 			}
 		}
+	}
+	public boolean okToInteractWithUser(int howImportant, String messageToUser){
+		return firstTime;
 	}
 	/*.................................................................................................................*/
 	public MesquiteProject establishProject(String arguments) {

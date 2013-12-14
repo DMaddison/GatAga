@@ -30,7 +30,6 @@ public class MultipleAlignService extends CategDataAlterer {
 			if (aligner == null)
 				return sorry(getName() + " couldn't start because no aligner module obtained.");
 		}
-		aligner.setQueryOptionsOnceOnly(true);  //Debugg.println for use in multiple matrix settings
 		return true;
 	}
 	/*.................................................................................................................*/
