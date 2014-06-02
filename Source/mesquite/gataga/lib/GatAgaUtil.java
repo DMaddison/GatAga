@@ -11,7 +11,7 @@ import mesquite.lib.*;
 
 public class GatAgaUtil {
 
-
+ 
 	/*.................................................................................................................*
 	public static FastaFileRecordArray getTableFromLocalFastaFile(String localFastaFilePath, boolean notifyIfNotFound){ 
 		if (localFastaFilePath==null)
