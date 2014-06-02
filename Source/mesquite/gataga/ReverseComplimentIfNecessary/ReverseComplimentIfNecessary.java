@@ -32,7 +32,7 @@ public class ReverseComplimentIfNecessary extends CategDataAlterer {
 	
 	/*.................................................................................................................*/
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
-		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false);
+		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false, true);
 	}
 	/*.................................................................................................................*/
    	/** Called to alter data in those cells selected in table*/

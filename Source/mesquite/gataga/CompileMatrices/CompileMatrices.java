@@ -11,7 +11,7 @@ Mesquite's web site is http://mesquiteproject.org
 This source code and its compiled class files are free and modifiable under the terms of 
 GNU Lesser General Public License.  (http://www.gnu.org/copyleft/lesser.html)
  */
-package mesquite.gataga.CopyTreesToSimpleFile; 
+package mesquite.gataga.CompileMatrices; 
 
 import java.awt.FileDialog;
 
@@ -20,7 +20,7 @@ import mesquite.lib.characters.CharacterData;
 import mesquite.lib.duties.*;
 
 /* ======================================================================== */
-public class CopyTreesToSimpleFile extends FileAlterer {
+public class CompileMatrices extends FileAlterer {
 	String saveFile = null;
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
@@ -50,7 +50,7 @@ public class CopyTreesToSimpleFile extends FileAlterer {
 		
 		if (saveFile == null || okToInteractWithUser(CAN_PROCEED_ANYWAY, "Asking for file to save")){ //need to check if can proceed
 			
-			MesquiteFileDialog fdlg= new MesquiteFileDialog(containerOfModule(), "Output File for Tree(s)", FileDialog.SAVE);
+			MesquiteFileDialog fdlg= new MesquiteFileDialog(containerOfModule(), "Output File for Matrices(s)", FileDialog.SAVE);
 			fdlg.setBackground(ColorTheme.getInterfaceBackground());
 			fdlg.setVisible(true);
 			String fileName=fdlg.getFile();
@@ -62,32 +62,53 @@ public class CopyTreesToSimpleFile extends FileAlterer {
 		}
 		if (saveFile == null)
 			return false;
-		Listable[] treeVectors = proj.getFileElements(TreeVector.class);	
-   		if (treeVectors == null)
+		Listable[] matrices = proj.getFileElements(CharacterData.class);	
+   		if (matrices == null)
    			return false;
-		for (int im = 0; im < treeVectors.length; im++){
-   			TreeVector trees = (TreeVector)treeVectors[im];
-   			if (trees.getFile() == file){
-   				for (int itree = 0; itree < trees.size(); itree++){
-   					Tree t = trees.getTree(itree);
-   					String description = t.writeTree(Tree.BY_NAMES);
-   					MesquiteFile.appendFileContents(saveFile, "[tree " + (itree+1) + " from file " + file.getFileName() + "]  " , true);
-  					
-   					MesquiteFile.appendFileContents(saveFile, description + StringUtil.lineEnding(), true);
+		for (int im = 0; im < matrices.length; im++){
+			CharacterData data = (CharacterData)matrices[im];
+   			if (data.getFile() == file){
+   				
+				MesquiteFile.appendFileContents(saveFile, "BEGIN CHARACTERS;" + StringUtil.lineEnding() + "\tTITLE " + ParseUtil.tokenize(file.getFileName()) + ";" + StringUtil.lineEnding() , true);
+				MesquiteFile.appendFileContents(saveFile, "\tDIMENSIONS NCHAR= " + data.getNumChars() + " ;" + StringUtil.lineEnding() , true);
+				MesquiteFile.appendFileContents(saveFile, "\tFORMAT DATATYPE = DNA GAP = - MISSING = ?;" + StringUtil.lineEnding() + "\tMATRIX" + StringUtil.lineEnding() , true);
+				for (int it = 0; it < data.getNumTaxa(); it++){
+					MesquiteFile.appendFileContents(saveFile, "\t" + ParseUtil.tokenize(data.getTaxa().getTaxonName(it)) + "\t" , true);
+   					StringBuffer description = new StringBuffer();
+   					for (int ic =0; ic<data.getNumChars(); ic++){
+						data.statesIntoNEXUSStringBuffer(ic, it, description);
+  					}
+   					MesquiteFile.appendFileContents(saveFile, description.toString() + StringUtil.lineEnding(), true);
   				}
-   			}
+				MesquiteFile.appendFileContents(saveFile, "\t;" + StringUtil.lineEnding() + "END;" + StringUtil.lineEnding() + StringUtil.lineEnding() , true);
+  			}
    		}
 		return true;
 
 	}
+	/*
+BEGIN CHARACTERS;
+	TITLE  Character_Matrix;
+	DIMENSIONS  NCHAR=20;
+	FORMAT DATATYPE = STANDARD GAP = - MISSING = ? SYMBOLS = "  0 1 2 3";
+	MATRIX
+	SarindaCutleri.MRB193                  10102101111111010100
+	SitticusPalustris.d030                 11012010011010100100
+	ThiodinineIndetEcuador.MRB024          01100010121100211100
+	FreyaDecorata.d211                     01111110000101010111
+	TrydarssusCfNobilitatus.MRB270         00010010121100110101
+;
+END;
+*/
+
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Put Trees into Simple File";
+		return "Compile Matrices into One File";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/
 	public String getExplanation() {
-		return "Puts trees from this file into a simple text file." ;
+		return "Puts matrices from this file into a partial NEXUS file." ;
 	}
 
 }

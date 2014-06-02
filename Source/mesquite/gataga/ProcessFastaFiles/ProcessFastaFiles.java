@@ -242,7 +242,10 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 			//	importer.readFile(getProject(), fileToRead, arguments);	
 			importer.readFileCore(parser, fileToRead, data,  taxa, numTaxa, progIndicator, arguments, true);	
-
+			Debugg.println(" PFF data " + data);
+			if (data != null)
+				Debugg.println(" PFF taxa of data " + data.getTaxa());
+				
 			hireAlterersIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
 
 			boolean proteinCoding = true;  // query about this  
