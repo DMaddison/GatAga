@@ -125,7 +125,7 @@ public String preparePreferencesForXML () {
 	/*.................................................................................................................*/
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
 		Debugg.println(" reverseComplementSequencesIfNecessary");
-		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false);
+		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false, false);
 		Debugg.println(" pairwiseAlignMatrix");
 		aligner.alterData(data, null,  null);
 	//	MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
