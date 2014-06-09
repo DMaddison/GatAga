@@ -164,7 +164,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	}
 
 
-	/*.................................................................................................................*/
+	/*.................................................................................................................*
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
 
 
