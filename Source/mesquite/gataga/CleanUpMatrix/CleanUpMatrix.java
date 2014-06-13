@@ -26,6 +26,7 @@ public class CleanUpMatrix extends CategDataAlterer {
 	int shiftToMatchSequence = 1;
 	boolean setCodonPositions = false;
 	CategDataAlterer aligner = null;
+	
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		return true;
@@ -107,8 +108,6 @@ public String preparePreferencesForXML () {
    	}
 	/*.................................................................................................................*/
    	private void processData(DNAData data, Taxa taxa) {
-   		if (!MesquiteThread.isScripting())
-   			queryOptions(taxa.getNumTaxa());
  //  			Debugg.println(" reverseComplementSequencesIfNecessary");
    		if (reverseComplementIfNecessary)
    			MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false, false);
@@ -134,7 +133,11 @@ public String preparePreferencesForXML () {
    	public boolean alterData(CharacterData data, MesquiteTable table,  UndoReference undoReference){
 		if (data==null)
 			return false;
-		
+		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
+   			if (!queryOptions(data.getNumTaxa()))
+   				return false;
+		}
+
 		if (!(data instanceof DNAData))
 			return false;
 	//	try{

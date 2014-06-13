@@ -1,4 +1,4 @@
-/* Mesquite GatAga source code.  Copyright 2012 David Maddison
+/* Mesquite GatAga source code.  Copyright 2012 David Maddison & Wayne Maddison
 Disclaimer:  The Mesquite source code is lengthy and we are few.  There are no doubt inefficiencies and goofs in this code. 
 The commenting leaves much to be desired. Please approach this source code with the spirit of helping out.
 Perhaps with your help we can be more than a few, and make Mesquite better.
@@ -182,17 +182,19 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	/*.................................................................................................................*/
 	public boolean showAlterDialog(int count) {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Add File Alterer?",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Add File Processor?",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
 		if (count == 0){
-			dialog.addLabel("For each file processed, do you want to alter it?");
+			dialog.addLabel("For each file examined, do you want to process it?");
 			dialog.completeAndShowDialog("Yes", "No", null, "No");
 		}
 		else {
-			dialog.addLabel("For each file processed, do you want to add another step in altering it?");
-			dialog.addLabel("The altering steps already requested are:");
+			dialog.addLabel("For each file examined, do you want to add another step in processing it?");
+			dialog.addLabel("The processing steps already requested are:");
 			String[] steps = new String[fileAlterers.size()];
-			for (int i = 0; i<steps.length; i++)
-				steps[i] = "(" + (i+1) + ") " + ((FileAlterer)fileAlterers.elementAt(i)).getName();
+			for (int i = 0; i<steps.length; i++){
+				if (fileAlterers.elementAt(i)!=null)
+						steps[i] = "(" + (i+1) + ") " + ((FileAlterer)fileAlterers.elementAt(i)).getName();
+			}
 			dialog.addList (steps, null, null, 8);
 			dialog.completeAndShowDialog("Add", "Done", null, "Done");
 		}
@@ -214,6 +216,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	}
 	/*.................................................................................................................*/
 	public void processFile(MesquiteFile fileToRead, String arguments) {
+		Debugg.println("Processing file " + fileToRead.getName() + "...");
 		incrementMenuResetSuppression();
 		ProgressIndicator progIndicator = new ProgressIndicator(null,"Importing File "+ fileToRead.getName(), fileToRead.existingLength());
 		progIndicator.start();
@@ -250,12 +253,16 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 				boolean success = true;
 				for (int i= 0; i< fileAlterers.size() && success; i++){
 					FileAlterer alterer = (FileAlterer)fileAlterers.elementAt(i);
-					success = alterer.alterFile(fileToWrite);
+					if (alterer!=null) {
+						success = alterer.alterFile(fileToWrite);
 
-					if (!success)
-						Debugg.println("Sorry,  " + alterer.getName() + " did not succeed in altering the file " + fileToRead.getFileName()+".nex");
-					else
-						Debugg.println("" + alterer.getName() + " successfully altered the file " + fileToRead.getFileName()+".nex");
+						if (!success)
+							Debugg.println("Sorry,  " + alterer.getName() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");
+						else 
+							Debugg.println("" + alterer.getName() + " successfully processed the file " + fileToRead.getFileName()+".nex");
+					} else
+						logln("There was a problem processing files; one of the processors was null.");
+
 				}
 			}
 			//processData((DNAData)data, taxa, proteinCoding);   // query about this
@@ -342,11 +349,11 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Process Fasta Files";
+		return "Process FASTA Files";
 	}
 	/*.................................................................................................................*/
 	public String getNameForMenuItem() {
-		return "Process Fasta Files...";
+		return "Process FASTA Files...";
 	}
 	/*.................................................................................................................*/
 	public boolean showCitation() {
@@ -355,7 +362,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 
 	/*.................................................................................................................*/
 	public String getExplanation() {
-		return "Processes a folder of fasta files.";
+		return "Processes a folder of FASTA files.";
 	}
 }
 

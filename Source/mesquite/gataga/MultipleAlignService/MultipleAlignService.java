@@ -50,9 +50,12 @@ public class MultipleAlignService extends CategDataAlterer {
 		if (!(data instanceof DNAData))
 			return false;
 		long[][] m  = aligner.alignSequences((MCategoricalDistribution)data.getMCharactersDistribution(), null, 0, data.getNumChars()-1, 0, data.getNumTaxa()-1);
-		Debugg.println(" m " + m);
+		/*Debugg.println(" m " + m);
 		if (m != null)
 			Debugg.println(" m.length " + m.length);
+			*/
+		if (m==null)
+			return false;
 		boolean success = AlignUtil.integrateAlignment(m, (MolecularData)data,  0, data.getNumChars()-1, 0, data.getNumTaxa()-1);
 		return success;
    	}
