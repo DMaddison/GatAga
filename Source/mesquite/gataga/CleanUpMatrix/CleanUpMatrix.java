@@ -104,23 +104,6 @@ public String preparePreferencesForXML () {
 		this.setCodonPositions = setCodonPositions;
 	}
 	/*.................................................................................................................*/
-<<<<<<< HEAD
-	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
-		Debugg.println(" reverseComplementSequencesIfNecessary");
-		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false, false);
-		Debugg.println(" pairwiseAlignMatrix");
-		aligner.alterData(data, null,  null);
-	//	MolecularDataUtil.pairwiseAlignMatrix(this, data, 0, false);
-		if (proteinCoding){
-			Debugg.println(" setCodonPositionsToMinimizeStops");
-			MolecularDataUtil.setCodonPositionsToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
-			//MolecularDataUtil.shiftToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
-		}
-// then alter taxon names
-		//open character matrix
-		// color by amino acid if protein coding
-		
-=======
    	public void alterCell(CharacterData data, int ic, int it){
    	}
 	/*.................................................................................................................*/
@@ -144,7 +127,6 @@ public String preparePreferencesForXML () {
    		//open character matrix
    		// color by amino acid if protein coding
 
->>>>>>> David.MainDev
 	}
 	/*.................................................................................................................*/
    	/** Called to alter data in those cells selected in table*/
