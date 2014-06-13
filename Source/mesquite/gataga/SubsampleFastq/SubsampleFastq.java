@@ -191,10 +191,12 @@ public class SubsampleFastq extends UtilitiesAssistant {
 			if (StringUtil.blank(fullPath))
 				return;
 			fileToWrite[i] = new MesquiteFile();
-			fileToWrite[i].setPath(directory+"Sampled"+fileName);
+			fileToWrite[i].setPath(directory+ "" + sampleFreq +"Sampled"+fileName);
 			fileToRead[i] = new MesquiteFile();
 			fileToRead[i].setPath(fullPath);
+			logln("File chosen: " + MesquiteFile.getFileNameFromFilePath(fullPath));
 		}
+		logln("Fraction of reads to sample: " + sampleFreq);
 		processFile(fileToRead, fileToWrite);
 
 	}

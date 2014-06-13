@@ -5,6 +5,9 @@ import java.awt.Checkbox;
 import mesquite.lib.*;
 import mesquite.molec.lib.*;
 
+/*  Initiator: DRM
+ * */
+
 public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	boolean preferencesSet = false;
 	String programOptions = "" ;
@@ -232,11 +235,11 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	}
 
 	public String getName() {
-		return "Blast Local Server";
+		return "BLAST Local Server";
 	}
 
 	public String getExplanation() {
-		return "Blasts a blast database on the same computer as Mesquite.";
+		return "BLASTs a database on the same computer as Mesquite.";
 	}
 
 	public boolean continueShellProcess(Process proc) {

@@ -13,13 +13,22 @@ import mesquite.lib.table.*;
 import mesquite.align.lib.*;
 
 
-
+/*  Authors: David Maddison, Wayne Maddison
+ * 
+ * TODO:
+ * 	- store preferences?
+ *  
+ */
 /* ======================================================================== */
 public class CleanUpMatrix extends CategDataAlterer {
-	CategDataAlterer aligner;
+	boolean reverseComplementIfNecessary = true;
+	boolean multipleSequenceAlignment = true;
+	int shiftToMatchSequence = 1;
+	boolean setCodonPositions = false;
+	CategDataAlterer aligner = null;
+	
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
-		aligner= (CategDataAlterer)hireNamedEmployee(CategDataAlterer.class, "#MultipleAlignService");
 		return true;
 	}
 	/*.................................................................................................................*/
@@ -43,86 +52,59 @@ public String preparePreferencesForXML () {
 		preferencesSet = true;
 		return buffer.toString();
 	}
-	/*.................................................................................................................*
-	public boolean queryOptions(int it, int max) {
+	/*.................................................................................................................*/
+	public boolean queryOptions(int numTaxa) {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog queryFilesDialog = new ExtensibleDialog(containerOfModule(), "Shift Other To Match",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
-		queryFilesDialog.addLabel("Shift Other To Match");
+		ExtensibleDialog queryDialog = new ExtensibleDialog(containerOfModule(), "Clean Up Matrix Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		queryDialog.addLabel("Clean Up Matrix Options");
 		
-		if (!MesquiteInteger.isCombinable(it1) || !MesquiteInteger.isCombinable(it2) || it1>max || it2>max){
-			if (it>=max) {
-				it1=1;
-			} else
-				it1 = it+2;  // it+1 to bump it over one, +2 because of the translation to 1-based numbering
-			it2=max;
-		}
-		IntegerField it1Field =  queryFilesDialog.addIntegerField ("First Sequence", it1, 4, 1, max);
-		IntegerField it2Field =  queryFilesDialog.addIntegerField ("Last Sequence", it2, 4, 1, max);
-		DoubleField matchFractionField = queryFilesDialog.addDoubleField ("Fraction of Match", matchFraction, 6, 0.00001, 1.0);
-		
-		queryFilesDialog.completeAndShowDialog(true);
+		Checkbox reverseComplementBox = queryDialog.addCheckBox("reverse complement if necessary", reverseComplementIfNecessary);
+		RadioButtons alignRadios = queryDialog.addRadioButtons(new String[] {"multiple sequence alignment", "shift to match chosen sequence"}, 0);
+		IntegerField shiftToMatchField =  queryDialog.addIntegerField ("Sequence to shift against", 1, 4, 1, numTaxa);
+		Checkbox setCodPosBox = queryDialog.addCheckBox("set codon positions to minimize stop codons", setCodonPositions);
+
+		queryDialog.completeAndShowDialog(true);
 		if (buttonPressed.getValue()==0)  {
-			matchFraction = matchFractionField.getValue();
-			it1 = it1Field.getValue();
-			it2 = it2Field.getValue();
+			reverseComplementIfNecessary = reverseComplementBox.getState();
+			multipleSequenceAlignment = alignRadios.getValue()==0;
+			if (!multipleSequenceAlignment){
+				shiftToMatchSequence = shiftToMatchField.getValue()-1;
+				if (shiftToMatchSequence<0)
+					shiftToMatchSequence=0;
+			}
+			setCodonPositions = setCodPosBox.getState();
 			storePreferences();
 		}
-		queryFilesDialog.dispose();
+		queryDialog.dispose();
 		return (buttonPressed.getValue()==0);
 	}
 	/*.................................................................................................................*/
-   	public void alterCell(CharacterData data, int ic, int it){
-   	}
-	/*.................................................................................................................*
-	boolean findMatchInSequence(CharacterData data, int masterRow, int masterStart, int masterEnd, int it, int start, MesquiteInteger matchEnd){
-		if (data.dataMatches(it, start, masterRow, masterStart, masterEnd, matchEnd, false, true, matchFraction, cs1, cs2)) {
-			return true;
-		}
-		return false;
+	public boolean isReverseComplementIfNecessary() {
+		return reverseComplementIfNecessary;
 	}
-	/*.................................................................................................................*
-	boolean findMatch(CharacterData data, MesquiteTable table, int masterRow, int masterStart, int masterEnd, int it, MesquiteInteger matchStart, MesquiteInteger matchEnd){
-		for (int i = 0; i<data.getNumChars(); i++) {  // cycle through possible starting points of match
-			if (findMatchInSequence(data,masterRow, masterStart, masterEnd, it, i, matchEnd)){
-				matchStart.setValue(i);
-				return true;
-			}
-		}
-		return false;
+	public void setReverseComplementIfNecessary(boolean reverseComplementIfNecessary) {
+		this.reverseComplementIfNecessary = reverseComplementIfNecessary;
 	}
-	/*.................................................................................................................*/
-
-	/*.................................................................................................................*
-	private boolean alignTouchedToDropped(int rowToAlign, int recipientRow){
-		MesquiteNumber score = new MesquiteNumber();
-		PairwiseAligner aligner;
-		if (aligner==null) {
-			aligner = new PairwiseAligner(true,false, subs,gapOpen.getValue(), gapExtend.getValue(), gapOpenTerminal.getValue(), gapExtendTerminal.getValue(), alphabetLength);
-			//aligner.setUseLowMem(true);
-		}
-		if (aligner!=null){
-			//aligner.setUseLowMem(data.getNumChars()>aligner.getCharThresholdForLowMemory());
-			originalCheckSum = ((CategoricalData)data).storeCheckSum(0, data.getNumChars()-1,rowToAlign, rowToAlign);
-			aligner.setAllowNewInternalGaps(allowNewGaps.getValue());
-			long[][] aligned = aligner.alignSequences((MCategoricalDistribution)data.getMCharactersDistribution(), recipientRow, rowToAlign,MesquiteInteger.unassigned,MesquiteInteger.unassigned,true,score);
-			if (aligned==null) {
-				logln("Alignment failed!");
-				return false;
-			}
-			logln("Align " + (rowToAlign+1) + " onto " + (recipientRow+1));
-			long[] newAlignment = Long2DArray.extractRow(aligned,1);
-
-			int[] newGaps = aligner.getGapInsertionArray();
-			if (newGaps!=null)
-				alignUtil.insertNewGaps((MolecularData)data, newGaps);
-			Rectangle problem = alignUtil.forceAlignment((MolecularData)data, 0, data.getNumChars()-1, rowToAlign, rowToAlign, 1, aligned);
-
-			((CategoricalData)data).examineCheckSum(0, data.getNumChars()-1,rowToAlign, rowToAlign, "Bad checksum; alignment has inapproppriately altered data!", warnCheckSum, originalCheckSum);
-			return true;
-		}
-		return false;
+	public boolean isMultipleSequenceAlignment() {
+		return multipleSequenceAlignment;
+	}
+	public void setMultipleSequenceAlignment(boolean multipleSequenceAlignment) {
+		this.multipleSequenceAlignment = multipleSequenceAlignment;
+	}
+	public int getShiftToMatchSequence() {
+		return shiftToMatchSequence;
+	}
+	public void setShiftToMatchSequence(int shiftToMatchSequence) {
+		this.shiftToMatchSequence = shiftToMatchSequence;
+	}
+	public boolean isSetCodonPositions() {
+		return setCodonPositions;
+	}
+	public void setSetCodonPositions(boolean setCodonPositions) {
+		this.setCodonPositions = setCodonPositions;
 	}
 	/*.................................................................................................................*/
+<<<<<<< HEAD
 	private void processData(DNAData data, Taxa taxa, boolean proteinCoding) {
 		Debugg.println(" reverseComplementSequencesIfNecessary");
 		MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false, false);
@@ -138,17 +120,46 @@ public String preparePreferencesForXML () {
 		//open character matrix
 		// color by amino acid if protein coding
 		
+=======
+   	public void alterCell(CharacterData data, int ic, int it){
+   	}
+	/*.................................................................................................................*/
+   	private void processData(DNAData data, Taxa taxa) {
+ //  			Debugg.println(" reverseComplementSequencesIfNecessary");
+   		if (reverseComplementIfNecessary)
+   			MolecularDataUtil.reverseComplementSequencesIfNecessary(data, module, taxa, 0, taxa.getNumTaxa(), false, false);
+//   		Debugg.println(" pairwiseAlignMatrix");
+   		if (multipleSequenceAlignment){
+   			if (aligner==null)
+   				aligner= (CategDataAlterer)hireNamedEmployee(CategDataAlterer.class, "#MultipleAlignService");
+   			if (aligner!=null)
+   				aligner.alterData(data, null,  null);
+   		} else
+   			MolecularDataUtil.pairwiseAlignMatrix(this, data, shiftToMatchSequence, false);
+   		if (setCodonPositions){
+ //  			Debugg.println(" setCodonPositionsToMinimizeStops");
+   			MolecularDataUtil.setCodonPositionsToMinimizeStops(data, module, taxa, 0, taxa.getNumTaxa());
+   		}
+   		// then alter taxon names
+   		//open character matrix
+   		// color by amino acid if protein coding
+
+>>>>>>> David.MainDev
 	}
 	/*.................................................................................................................*/
    	/** Called to alter data in those cells selected in table*/
    	public boolean alterData(CharacterData data, MesquiteTable table,  UndoReference undoReference){
 		if (data==null)
 			return false;
-		
+		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
+   			if (!queryOptions(data.getNumTaxa()))
+   				return false;
+		}
+
 		if (!(data instanceof DNAData))
 			return false;
 	//	try{
-		processData((DNAData)data,data.getTaxa(),true);
+		processData((DNAData)data,data.getTaxa());
 //		}
 //		catch (ArrayIndexOutOfBoundsException e){
 //			return false;
@@ -175,18 +186,18 @@ public String preparePreferencesForXML () {
       	public int getVersionOfFirstRelease(){
       		return -100;  
     }
-	/*.................................................................................................................*/
-    	 public String getName() {
+    	/*.................................................................................................................*/
+   	 public String getName() {
 		return "Clean Up Matrix";
-   	 }
-    		/*.................................................................................................................*
-    	 public String getNameForMenuItem() {
-		return "Shift Other To Match...";
-   	 }
+  	 }
+ 	/*.................................................................................................................*/
+	 public String getNameForMenuItem() {
+	return "Clean Up Matrix...";
+	 }
 	/*.................................................................................................................*/
  	/** returns an explanation of what the module does.*/
  	public String getExplanation() {
- 		return "Blah blah blah." ;
+ 		return "This will adjust sequences as chosen (e.g., by reverse complementing, aligning the matrix, and then adjusting the codon postions)." ;
    	 }
    	 
 }
