@@ -193,7 +193,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			String[] steps = new String[fileAlterers.size()];
 			for (int i = 0; i<steps.length; i++){
 				if (fileAlterers.elementAt(i)!=null)
-						steps[i] = "(" + (i+1) + ") " + ((FileAlterer)fileAlterers.elementAt(i)).getName();
+						steps[i] = "(" + (i+1) + ") " + ((FileAlterer)fileAlterers.elementAt(i)).getNameAndParameters();
 			}
 			dialog.addList (steps, null, null, 8);
 			dialog.completeAndShowDialog("Add", "Done", null, "Done");
