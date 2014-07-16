@@ -65,10 +65,10 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	/*.................................................................................................................*/
 	public boolean queryOptions() {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Local Blast Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
-		dialog.addLabel("Local Blast Options");
+		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Local BLAST Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		dialog.addLabel("Local BLAST Options");
 		StringBuffer sb = new StringBuffer();
-		sb.append("To use this local blast tool, you need to have installed the blast program on this computer, and need to have also set up local blast databases on your computer.\n");
+		sb.append("To use this local BLAST tool, you need to have installed the BLAST program on this computer, and need to have also set up local blast databases on your computer.\n");
 		sb.append("If you are going to do a blastX to a local protein database that you downloaded from GenBank, you will need to check Use ID in Definition");
 		dialog.appendToHelpString(sb.toString());
 
@@ -122,7 +122,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		blastCommand+=" " + programOptions + StringUtil.lineEnding();
 		shellScript.append(blastCommand);
 		if (writeCommand)
-			logln("blast command: \n" + blastCommand);
+			logln("\n...................\nBLAST command: \n" + blastCommand);
 
 		String scriptPath = rootDir + "batchScript" + MesquiteFile.massageStringToFilePathSafe(unique) + ".bat";
 		MesquiteFile.putFileContents(scriptPath, shellScript.toString(), true);

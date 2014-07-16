@@ -172,7 +172,7 @@ public class BlastAndAddFileAlterer extends FileAlterer {
    						String newSequencesAsFasta = blasterTask.getFastaFromIDs(ID,  data instanceof DNAData, blastResponse);
 
    						if (StringUtil.notEmpty(newSequencesAsFasta))
-   							NCBIUtil.importFASTASequences(data, newSequencesAsFasta, this, report);
+   							NCBIUtil.importFASTASequences(data, newSequencesAsFasta, this, report, -1);
    						else
    							logln("   Blast database returned no FASTA files in response to query.");
 
