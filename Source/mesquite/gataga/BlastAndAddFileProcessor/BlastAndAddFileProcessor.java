@@ -11,7 +11,7 @@ GNU Lesser General Public License.  (http://www.gnu.org/copyleft/lesser.html)
  */
 
 
-package mesquite.gataga.BlastAndAddFileAlterer; 
+package mesquite.gataga.BlastAndAddFileProcessor; 
 
 import java.util.*;
 import java.awt.*;
@@ -29,7 +29,7 @@ import mesquite.molec.lib.Blaster;
 import mesquite.molec.lib.NCBIUtil;
 
 /* ======================================================================== */
-public class BlastAndAddFileAlterer extends FileAlterer {
+public class BlastAndAddFileProcessor extends FileProcessor {
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
 		EmployeeNeed e = registerEmployeeNeed(Blaster.class, getName() + "  needs a Blast module.","");
 	}

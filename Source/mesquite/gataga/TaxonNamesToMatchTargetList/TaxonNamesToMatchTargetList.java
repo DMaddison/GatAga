@@ -18,7 +18,7 @@ import mesquite.lib.characters.CharacterData;
 import mesquite.lib.duties.*;
 
 /* ======================================================================== */
-public class TaxonNamesToMatchTargetList extends FileAlterer {
+public class TaxonNamesToMatchTargetList extends FileProcessor {
 	String[] targetList = null;
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {

@@ -20,7 +20,7 @@ import mesquite.lib.characters.CharacterData;
 import mesquite.lib.duties.*;
 
 /* ======================================================================== */
-public class CopyTreesToSimpleFile extends FileAlterer {
+public class CopyTreesToSimpleFile extends FileProcessor {
 	String saveFile = null;
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {

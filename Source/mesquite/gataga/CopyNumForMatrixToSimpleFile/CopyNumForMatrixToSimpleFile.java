@@ -9,7 +9,7 @@ import mesquite.lib.duties.*;
 import mesquite.molec.lib.Blaster;
 
 /* ======================================================================== */
-public class CopyNumForMatrixToSimpleFile extends FileAlterer {
+public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 	NumberForMatrix numTask;
 	String saveFile = null;
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed

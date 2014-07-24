@@ -190,10 +190,10 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		else {
 			dialog.addLabel("For each file examined, do you want to add another step in processing it?");
 			dialog.addLabel("The processing steps already requested are:");
-			String[] steps = new String[fileAlterers.size()];
+			String[] steps = new String[fileProcessors.size()];
 			for (int i = 0; i<steps.length; i++){
-				if (fileAlterers.elementAt(i)!=null)
-						steps[i] = "(" + (i+1) + ") " + ((FileAlterer)fileAlterers.elementAt(i)).getNameAndParameters();
+				if (fileProcessors.elementAt(i)!=null)
+						steps[i] = "(" + (i+1) + ") " + ((FileProcessor)fileProcessors.elementAt(i)).getNameAndParameters();
 			}
 			dialog.addList (steps, null, null, 8);
 			dialog.completeAndShowDialog("Add", "Done", null, "Done");
@@ -202,16 +202,16 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		return (buttonPressed.getValue()==0);
 	}
 	/*.................................................................................................................*/
-	Vector fileAlterers = null;
+	Vector fileProcessors = null;
 	private void hireAlterersIfNeeded(){
 		int count = 0;
-		if (fileAlterers == null)
+		if (fileProcessors == null)
 			while (showAlterDialog(count)){
-				if (fileAlterers == null)
-					fileAlterers = new Vector();
+				if (fileProcessors == null)
+					fileProcessors = new Vector();
 				count++;
-				FileAlterer alterer = (FileAlterer)project.getCoordinatorModule().hireEmployee(FileAlterer.class, "File processor (" + count+ ")");
-				fileAlterers.addElement(alterer);
+				FileProcessor alterer = (FileProcessor)project.getCoordinatorModule().hireEmployee(FileProcessor.class, "File processor (" + count+ ")");
+				fileProcessors.addElement(alterer);
 			}
 	}
 	/*.................................................................................................................*/
@@ -252,10 +252,10 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			hireAlterersIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
 
 			boolean proteinCoding = true;  // query about this  
-			if (fileAlterers != null){
+			if (fileProcessors != null){
 				boolean success = true;
-				for (int i= 0; i< fileAlterers.size() && success; i++){
-					FileAlterer alterer = (FileAlterer)fileAlterers.elementAt(i);
+				for (int i= 0; i< fileProcessors.size() && success; i++){
+					FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
 					if (alterer!=null) {
 						success = alterer.alterFile(fileToWrite);
 
