@@ -68,14 +68,19 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Local BLAST Options",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
 		dialog.addLabel("Local BLAST Options");
 		StringBuffer sb = new StringBuffer();
-		sb.append("To use this local BLAST tool, you need to have installed the BLAST program on this computer, and need to have also set up local blast databases on your computer.\n");
-		sb.append("If you are going to do a blastX to a local protein database that you downloaded from GenBank, you will need to check Use ID in Definition");
+		sb.append("To use this local BLAST tool, you need to have installed the BLAST program on this computer, and need to have also set up local BLAST databases on your computer. ");
+		sb.append("You can do this by following the instructions at <a href=\"http://www.ncbi.nlm.nih.gov/guide/howto/run-blast-local/\">http://www.ncbi.nlm.nih.gov/guide/howto/run-blast-local/</a>.  If you build your own BLAST database from ");
+		sb.append("a fasta file using the makeblastdb command-line tool, then both Use ID in Definition and Local BLAST database has NCBI taxonomy IDs should be unchecked. ");
+		sb.append("<br><br>");
+		sb.append("If you are going to do a blastX to a local protein database that you downloaded from GenBank, you will need to check Use ID in Definition.");
 		dialog.appendToHelpString(sb.toString());
+		
+		
 
 		SingleLineTextField databasesField = dialog.addTextField("Databases to search:", databases, 26, true);
-		SingleLineTextField programOptionsField = dialog.addTextField("Additional Blast options:", programOptions, 26, true);
+		SingleLineTextField programOptionsField = dialog.addTextField("Additional BLAST options:", programOptions, 26, true);
 		Checkbox useIDInDefinitionBox = dialog.addCheckBox("Use ID in Definition (NCBI-provided databases)", useIDInDefinition);
-		Checkbox localBlastDBHasTaxonomyIDsBox = dialog.addCheckBox("Local Blast database has NCBI taxonomy IDs", localBlastDBHasTaxonomyIDs);
+		Checkbox localBlastDBHasTaxonomyIDsBox = dialog.addCheckBox("Local BLAST database has NCBI taxonomy IDs", localBlastDBHasTaxonomyIDs);
 		IntegerField numThreadsField = dialog.addIntegerField("Number of processor threads to use:", numThreads,20, 1, Integer.MAX_VALUE);
 		
 		dialog.completeAndShowDialog(true);
