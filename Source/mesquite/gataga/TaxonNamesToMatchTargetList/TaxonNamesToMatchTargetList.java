@@ -44,7 +44,7 @@ public class TaxonNamesToMatchTargetList extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean alterFile(MesquiteFile file){
+	public boolean processFile(MesquiteFile file){
 		boolean success = false;
 		if (targetList == null || okToInteractWithUser(CAN_PROCEED_ANYWAY, "Asking for target list")){ //need to check if can proceed
 			MesquiteString directoryName = new MesquiteString();

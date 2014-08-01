@@ -76,7 +76,24 @@ public class BlastAndAddFileProcessor extends FileProcessor {
    	 
  	Choice blastTypeChoice ;
 
- 	/*.................................................................................................................*/
+	/*.................................................................................................................*/
+	public void processSingleXMLPreference (String tag, String content) {
+		if ("maxHits".equalsIgnoreCase(tag))
+			maxHits = MesquiteInteger.fromString(content);		
+		else if ("eValueCutoff".equalsIgnoreCase(tag))
+			eValueCutoff = MesquiteDouble.fromString(content);		
+		else if ("blastType".equalsIgnoreCase(tag))
+			blastType = MesquiteInteger.fromString(content);
+	}
+	/*.................................................................................................................*/
+	public String preparePreferencesForXML () {
+		StringBuffer buffer = new StringBuffer(60);	
+		StringUtil.appendXMLTag(buffer, 2, "maxHits", maxHits);  
+		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
+		StringUtil.appendXMLTag(buffer, 2, "blastType", blastType);  
+		return buffer.toString();
+	}
+	/*.................................................................................................................*/
  	public boolean queryOptions() {
  		if (optionsQueried)
  			return true;
@@ -85,7 +102,8 @@ public class BlastAndAddFileProcessor extends FileProcessor {
  		dialog.addLabel("Options for Top Blast Matches");
  		int oldBlastType = blastType;
 
- 		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
+		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", maxHits, 8, 1, Integer.MAX_VALUE);
+		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
  		blastTypeChoice = dialog.addPopUpMenu("BLAST type for nucleotides", Blaster.getBlastTypeNames(), blastType);
  	//	blastXCheckBox.addItemListener(this);
 
@@ -95,6 +113,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 // 			blastx = blastXCheckBox.getState();
  			blastType = blastTypeChoice.getSelectedIndex();
  			if (blastType<0) blastType=oldBlastType;
+ 			maxHits = numHitsField.getValue();
  			storePreferences();
  		}
  		dialog.dispose();
@@ -136,7 +155,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 
 	/*.................................................................................................................*/
    	/** Called to alter file. */
-   	public boolean alterFile(MesquiteFile file){
+   	public boolean processFile(MesquiteFile file){
    		MesquiteProject proj = file.getProject();
    		if (proj == null)
    			return false;
@@ -191,7 +210,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
    	}
 	/*.................................................................................................................*/
     	 public String getName() {
-		return "BLAST and Add Single Top Hit";
+		return "BLAST and Add Top Hits";
    	 }
 	/*.................................................................................................................*/
  	/** returns an explanation of what the module does.*/

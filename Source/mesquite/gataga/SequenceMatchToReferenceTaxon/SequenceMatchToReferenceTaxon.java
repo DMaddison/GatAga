@@ -9,7 +9,7 @@ import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
 
-public class SequenceMatchToReferenceTaxon extends NumberForMatrix {
+public class SequenceMatchToReferenceTaxon extends NumbersForMatrix {
 	int refSequence = 0;
 	boolean exactMatch = true;
 
@@ -21,12 +21,13 @@ public class SequenceMatchToReferenceTaxon extends NumberForMatrix {
 	public void initialize(MCharactersDistribution data) {
 	} 
 
-	public void calculateNumber(MCharactersDistribution data, MesquiteNumber result, MesquiteString resultString) {
+	public void calculateNumbers(MCharactersDistribution data, NumberArray result, MesquiteString resultString) {
 		if (result == null || data == null)
 			return;
 		clearResultAndLastResult(result);
 
 		long match = 0;
+		long differentNucleotide = 0;
 		long numSequencesProcessed = 0;
 		CategoricalData parentData = (CategoricalData)data.getParentData();
 		int numTaxa = parentData.getNumTaxa();
@@ -42,34 +43,42 @@ public class SequenceMatchToReferenceTaxon extends NumberForMatrix {
 				countInRefSequence++;
 			}
 		}
-		
 
-		for (int it=0; it<numTaxa; it++)
-			if (it!=refSequence){  //not reference sequence, lets see how many match ref sequence
-				numSequencesProcessed++;
-				for (int ic=0; ic<numChars; ic++){
-					if (!parentData.isInapplicable(ic,refSequence) && !parentData.isUnassigned(ic,refSequence)) {  // not gap and not missing in reference
+		for (int ic=0; ic<numChars; ic++){
+			if (!parentData.isInapplicable(ic,refSequence) && !parentData.isUnassigned(ic,refSequence)) {  // not gap and not missing in reference
+				boolean baseFound = false;
+				boolean baseMatches = true;
+				for (int it=0; it<numTaxa; it++){   //now let's see what is in the other sequences
+					if (it!=refSequence){  //not reference sequence, lets see how many match ref sequence
 						if (!parentData.isInapplicable(ic,it) && !parentData.isUnassigned(ic,it)) {  //something in sequence
-							if (parentData.sameStateIgnoreCase(ic, refSequence, ic, it))
-								match++;
-							else
-								missing++;
-						} else {  //didn't get this one
-							missing++;
+							baseFound = true;
+							if (!parentData.sameStateIgnoreCase(ic, refSequence, ic, it))
+								baseMatches=false;
 						}
 					}
 				}
-			} 
+				if (baseFound)
+					if (baseMatches)
+						match++;
+					else
+						differentNucleotide++;
+				else
+					missing++;
+			}
+		} 
+
+		//result.addParts(0, 2);
 
 //		Debugg.println("match: " + match);
 //		Debugg.println("countInRefSequence " +countInRefSequence);
-		if (countInRefSequence*numSequencesProcessed>0) {
-			result.setValue(match*1.0/(countInRefSequence*numSequencesProcessed)); 
-		}  else
-			result.setValue(0.0); 
+		if (countInRefSequence>0) {
+			result.setValues(new double[] {match*1.0/countInRefSequence, (match+differentNucleotide)*1.0/countInRefSequence, numTaxa-1}); 
+		}  else{
+			result.setValues(new double[] {0.0,0.0, 0.0}); 
+		}
 
 		if (resultString!=null) {
-			resultString.setValue("Fraction of reference sequence present: " + result.toString());
+			resultString.setValue("Fraction of reference sequence exactly present: " + result.getDouble(0) + ", fraction of reference sequence with at least one other sequence with aligned base: " + result.getDouble(2)+ ", Number of comparison taxa: " + result.getDouble(2));
 		}
 		saveLastResult(result);
 		saveLastResultString(resultString);
@@ -80,11 +89,15 @@ public class SequenceMatchToReferenceTaxon extends NumberForMatrix {
 	}
 
 	public String getName() {
-		return "Fraction of reference sequence present";
+		return "Matching to Reference Sequence";
+	} 
+
+	public String[] getNumbersNames() {
+		return new String[] {"Fraction exact match","Fraction nucleotide present","Number of comparison taxa"};
 	} 
 
 	public String getExplanation(){
-		return "Calculates the fraction of the matrix that is xxx.";
+		return "Calculates several numbers about how much the taxa in a matrix match the reference taxon.";
 	} 
 
 } 

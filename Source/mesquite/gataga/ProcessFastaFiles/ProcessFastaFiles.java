@@ -45,13 +45,78 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		return true;
 	}
 	/*.................................................................................................................*/
+	Vector fileProcessors = null;
+	private void hireProcessorsIfNeeded(){
+		int count = 0;
+		if (fileProcessors == null)
+			while (showAlterDialog(count)){
+				if (fileProcessors == null)
+					fileProcessors = new Vector();
+				count++;
+				FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireEmployee(FileProcessor.class, "File processor (" + count+ ")");
+				fileProcessors.addElement(processor);
+			}
+		storePreferences();
+	}
+	/*.................................................................................................................*
+	public Snapshot getSnapshot(MesquiteFile file) { 
+		Snapshot temp = new Snapshot();
+		if (fileProcessors != null)
+			for (int i=0; i<fileProcessors.size(); i++) {
+				temp.addLine("setFileProcessor",(FileProcessor)fileProcessors.elementAt(i));
+			}
+		return temp;
+	}
+	boolean preferencesSet=false;
+	/*.................................................................................................................*
+	public void processSingleXMLPreference (String tag, String content) {
+		if ("fileProcessor".equalsIgnoreCase(tag)) {
+			String fileProcessorName = StringUtil.cleanXMLEscapeCharacters(content);
+			FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireNamedEmployee(FileProcessor.class, fileProcessorName);
+			if (fileProcessors == null)
+				fileProcessors = new Vector();
+			fileProcessors.addElement(processor);
+		}
+
+		preferencesSet = true;
+	}
+	/*.................................................................................................................*
+	public String preparePreferencesForXML () {
+		StringBuffer buffer = new StringBuffer(200);
+		if (fileProcessors != null)
+			for (int i=0; i<fileProcessors.size(); i++) {
+				StringUtil.appendXMLTag(buffer, 2, "fileProcessor ",(FileProcessor)fileProcessors.elementAt(i));
+			}
+
+		preferencesSet = true;
+		return buffer.toString();
+	}
+
+	MesquiteInteger pos = new MesquiteInteger();
+	/*.................................................................................................................*
+	public Object doCommand(String commandName, String arguments, CommandChecker checker) {
+		if (checker.compare(this.getClass(), "Sets the module processing files", "[name of module]", commandName, "setFileProcessor")) {
+			FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireNamedEmployee(FileProcessor.class, arguments);
+			if (processor!=null) {
+				if (fileProcessors == null)
+					fileProcessors = new Vector();
+				fileProcessors.addElement(processor);
+			}
+			
+		}
+		else 
+			super.doCommand(commandName, arguments, checker);
+		return null;
+	}
+
+	/*.................................................................................................................*/
 	/** returns whether this module is requesting to appear as a primary choice */
 	public boolean requestPrimaryChoice(){
 		return true;  
 	}
 	/*.................................................................................................................*/
 	public boolean isPrerelease(){
-		return false;
+		return true;
 	}
 	/*.................................................................................................................*/
 	public boolean isSubstantive(){
@@ -202,19 +267,6 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		return (buttonPressed.getValue()==0);
 	}
 	/*.................................................................................................................*/
-	Vector fileProcessors = null;
-	private void hireAlterersIfNeeded(){
-		int count = 0;
-		if (fileProcessors == null)
-			while (showAlterDialog(count)){
-				if (fileProcessors == null)
-					fileProcessors = new Vector();
-				count++;
-				FileProcessor alterer = (FileProcessor)project.getCoordinatorModule().hireEmployee(FileProcessor.class, "File processor (" + count+ ")");
-				fileProcessors.addElement(alterer);
-			}
-	}
-	/*.................................................................................................................*/
 	public void processFile(MesquiteFile fileToRead, String arguments) {
 		Debugg.println("Processing file " + fileToRead.getName() + "...");
 		incrementMenuResetSuppression();
@@ -249,7 +301,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			if (data != null)
 				Debugg.println(" PFF taxa of data " + data.getTaxa());
 				
-			hireAlterersIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
+			hireProcessorsIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
 
 			boolean proteinCoding = true;  // query about this  
 			if (fileProcessors != null){
@@ -257,7 +309,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 				for (int i= 0; i< fileProcessors.size() && success; i++){
 					FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
 					if (alterer!=null) {
-						success = alterer.alterFile(fileToWrite);
+						success = alterer.processFile(fileToWrite);
 
 						if (!success)
 							Debugg.println("Sorry,  " + alterer.getName() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");

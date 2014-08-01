@@ -46,7 +46,7 @@ public class CopyTreesToSimpleFile extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean alterFile(MesquiteFile file){
+	public boolean processFile(MesquiteFile file){
 		
 		if (saveFile == null || okToInteractWithUser(CAN_PROCEED_ANYWAY, "Asking for file to save")){ //need to check if can proceed
 			
