@@ -9,9 +9,10 @@ import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
 
-public class SequenceMatchToReferenceTaxon extends NumbersForMatrix {
+public class SequenceMatchToReferenceTaxon extends NumberArrayForMatrix {
 	int refSequence = 0;
 	boolean exactMatch = true;
+	static final int numNumbers = 3;
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		return true;
@@ -67,10 +68,7 @@ public class SequenceMatchToReferenceTaxon extends NumbersForMatrix {
 			}
 		} 
 
-		//result.addParts(0, 2);
-
-//		Debugg.println("match: " + match);
-//		Debugg.println("countInRefSequence " +countInRefSequence);
+		//NOTE: if the number of numbers output is changed, must change numNumbers above!!!!
 		if (countInRefSequence>0) {
 			result.setValues(new double[] {match*1.0/countInRefSequence, (match+differentNucleotide)*1.0/countInRefSequence, numTaxa-1}); 
 		}  else{
@@ -94,6 +92,10 @@ public class SequenceMatchToReferenceTaxon extends NumbersForMatrix {
 
 	public String[] getNumbersNames() {
 		return new String[] {"Fraction exact match","Fraction nucleotide present","Number of comparison taxa"};
+	} 
+
+	public int getNumberOfNumbers() {
+		return numNumbers;
 	} 
 
 	public String getExplanation(){

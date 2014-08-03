@@ -1,5 +1,5 @@
 
-package mesquite.gataga.CopyNumForMatrixToSimpleFile; 
+package mesquite.gataga.CopyNumArrayForMatrixToSimpleFile; 
 
 import java.awt.FileDialog;
 
@@ -9,16 +9,16 @@ import mesquite.lib.duties.*;
 import mesquite.molec.lib.Blaster;
 
 /* ======================================================================== */
-public class CopyNumForMatrixToSimpleFile extends FileProcessor {
-	NumberForMatrix numTask;
+public class CopyNumArrayForMatrixToSimpleFile extends FileProcessor {
+	NumberArrayForMatrix numTask;
 	String saveFile = null;
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
-		EmployeeNeed e = registerEmployeeNeed(NumberForMatrix.class, getName() + "  needs a NumberForMatrix module.","");
+		EmployeeNeed e = registerEmployeeNeed(NumberArrayForMatrix.class, getName() + "  needs a NumbersForMatrix module.","");
 	}
 
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName){
-		numTask = (NumberForMatrix)hireEmployee(NumberArrayForMatrix.class, "NumberForMatrix (for " + getName() + ")"); 
+		numTask = (NumberArrayForMatrix)hireEmployee(NumberArrayForMatrix.class, "NumbersForMatrix (for " + getName() + ")"); 
 		if (numTask==null)
 			return sorry(getName() + " couldn't start because no NumberForMatrix module could be obtained.");
 		return true;
@@ -57,21 +57,42 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 			if (StringUtil.blank(fileName) || StringUtil.blank(directory))
 				return false;
 			saveFile = MesquiteFile.composePath(directory, fileName);
-			MesquiteFile.appendFileContents(saveFile, "file name" + numTask.getName() + StringUtil.lineEnding(), true);
+			String[] names = numTask.getNumbersNames();
+			String s = "";
+			
+			if (proj.getNumberCharMatricesVisible(file)>1){
+				s+="\t"; // go to the first matrix start
+				for (int im = 0; im < proj.getNumberCharMatricesVisible(file); im++){
+					CharacterData data = proj.getCharacterMatrix(file, im);  //WAYNECHECK: what if last matrix is visible but not an earlier one????
+					s+= data.getName();
+					for (int i=0; i<numTask.getNumberOfNumbers(); i++)
+						s+= "\t";
+				}
+				s += StringUtil.lineEnding();
+			}
+			s += "file name";
+			if (names!=null)
+				for (int i=0; i<names.length; i++)
+					s+= "\t" + names[i];
+			s += StringUtil.lineEnding();
+			MesquiteFile.appendFileContents(saveFile, s, true);
 		}
 		if (saveFile == null)
 			return false;
-		
-		MesquiteNumber result = new MesquiteNumber();
+
+		NumberArray result = new NumberArray();
 		MesquiteString resultString = new MesquiteString("");
-		
+
 		StringBuffer sb = new StringBuffer();
-		sb.append(file.getName());
-   		for (int im = 0; im < proj.getNumberCharMatrices(file); im++){
- 			CharacterData data = proj.getCharacterMatrix(file, im);
-  			sb.append("\t"+ data.getName());
-  			numTask.calculateNumber(data.getMCharactersDistribution(), result, resultString);
-    		sb.append(result.toString());
+		sb.append(file.getName()+"\t");
+		for (int im = 0; im < proj.getNumberCharMatricesVisible(file); im++){
+			if (im>0)
+				sb.append("\t");
+			CharacterData data = proj.getCharacterMatrix(file, im);
+			numTask.calculateNumbers(data.getMCharactersDistribution(), result, resultString);
+			for (int i=0; i<result.getNumParts(); i++) {
+				sb.append(result.toString(i)+"\t");
+			}
    		}
 		MesquiteFile.appendFileContents(saveFile, sb.toString() + StringUtil.lineEnding(), true);
 		return true;
@@ -79,12 +100,12 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Put Number for Matrix into Simple File";
+		return "Put Number Array for Matrix into Simple File";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/
 	public String getExplanation() {
-		return "Puts a calculated number about a matrix into a simple text file." ;
+		return "Puts calculated number arrays about a matrix into a simple text file." ;
 	}
 
 }
