@@ -61,7 +61,14 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			return queryOptions();
 		return true;
 	}
-	
+	/*.................................................................................................................*/
+	public String getDatabaseName () {
+		if (databases==null)
+			return "";
+		return databases;
+	}
+
+
 	/*.................................................................................................................*/
 	public boolean queryOptions() {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);

@@ -191,7 +191,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
    						String newSequencesAsFasta = blasterTask.getFastaFromIDs(ID,  data instanceof DNAData, blastResponse);
 
    						if (StringUtil.notEmpty(newSequencesAsFasta))
-   							NCBIUtil.importFASTASequences(data, newSequencesAsFasta, this, report, -1);
+   							NCBIUtil.importFASTASequences(data, newSequencesAsFasta, this, report, -1, it, false, false);
    						else
    							logln("   Blast database returned no FASTA files in response to query.");
 
