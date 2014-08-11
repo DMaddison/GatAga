@@ -28,6 +28,10 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	 -evalue 0.01
 	 */
 	
+	public  int getUpperLimitMaxHits(){
+		return 100;
+	}
+
 	/*.................................................................................................................*/
 	public void processSingleXMLPreference (String tag, String content) {
 		 if ("programOptions".equalsIgnoreCase(tag))
