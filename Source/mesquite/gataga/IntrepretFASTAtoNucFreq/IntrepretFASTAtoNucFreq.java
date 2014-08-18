@@ -698,7 +698,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 
 
 		data.saveChangeHistory = wassave;
-		data.resetChangedSinceSave();
+		data.resetCellMetadata();
 
 		if (abort && AlertDialog.query(containerOfModule(), "Save partial file?" , "Save the portion that has been read in and processed?","Save", "Cancel"))
 			abort=false;  // for this importer, save whatever you have read in
