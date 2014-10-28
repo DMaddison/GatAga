@@ -18,7 +18,7 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName){
-		numTask = (NumberForMatrix)hireEmployee(NumberArrayForMatrix.class, "NumberForMatrix (for " + getName() + ")"); 
+		numTask = (NumberForMatrix)hireEmployee(NumberForMatrix.class, "NumberForMatrix (for " + getName() + ")"); 
 		if (numTask==null)
 			return sorry(getName() + " couldn't start because no NumberForMatrix module could be obtained.");
 		return true;

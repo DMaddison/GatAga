@@ -302,6 +302,8 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 				Debugg.println(" PFF taxa of data " + data.getTaxa());
 				
 			hireProcessorsIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
+			
+			Debugg.println(" PFF data visible: " + data.isUserVisible());
 
 			boolean proteinCoding = true;  // query about this  
 			if (fileProcessors != null){
@@ -312,9 +314,9 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 						success = alterer.processFile(fileToWrite);
 
 						if (!success)
-							Debugg.println("Sorry,  " + alterer.getName() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");
+							Debugg.println("Sorry,  " + alterer.getNameAndParameters() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");
 						else 
-							Debugg.println("" + alterer.getName() + " successfully processed the file " + fileToRead.getFileName()+".nex");
+							Debugg.println("" + alterer.getNameAndParameters() + " successfully processed the file " + fileToRead.getFileName()+".nex");
 					} else
 						logln("There was a problem processing files; one of the processors was null.");
 
