@@ -314,9 +314,9 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 						success = alterer.processFile(fileToWrite);
 
 						if (!success)
-							Debugg.println("Sorry,  " + alterer.getNameAndParameters() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");
+							logln("Sorry,  " + alterer.getNameAndParameters() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");
 						else 
-							Debugg.println("" + alterer.getNameAndParameters() + " successfully processed the file " + fileToRead.getFileName()+".nex");
+							logln("" + alterer.getNameAndParameters() + " successfully processed the file " + fileToRead.getFileName()+".nex");
 					} else
 						logln("There was a problem processing files; one of the processors was null.");
 

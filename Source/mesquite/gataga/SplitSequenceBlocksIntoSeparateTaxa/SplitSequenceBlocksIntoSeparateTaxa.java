@@ -40,7 +40,7 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 				String s = taxa.getTaxonName(it);
 				data.incrementSuppressHistoryStamp();
 
-				int numBlocks = data.getNumSequenceBlocks(it,0, data.getNumChars());
+				int numBlocks = data.getNumDataBlocks(it,0, data.getNumChars());
 
 				//Debugg.println("it: " + it + ", numBlocks: " + numBlocks);
 				if (numBlocks>1) {
@@ -59,7 +59,7 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 					MesquiteInteger blockStart = new MesquiteInteger();
 					MesquiteInteger blockEnd = new MesquiteInteger();
 					for (int count=2; count<=numBlocks; count++) {  // now let's populate the new taxa
-						data.getSequenceBlockBoundaries(it,0,data.getNumChars(), count,  blockStart,  blockEnd); 
+						data.getDataBlockBoundaries(it,0,data.getNumChars(), count,  blockStart,  blockEnd); 
 						//Debugg.println("   it " + it + ", block: " + count + ", blockStart=" + blockStart.getValue()+ ", blockEnd=" + blockEnd.getValue());
 						if (blockStart.isCombinable() && blockEnd.isCombinable())
 							for (int ic=blockStart.getValue(); ic<=blockEnd.getValue(); ic++) {
@@ -69,7 +69,7 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 						blockEnd.setToUnassigned();
 					}
 					
-					data.getSequenceBlockBoundaries(it,0,data.getNumChars(), 1,  blockStart,  blockEnd); 
+					data.getDataBlockBoundaries(it,0,data.getNumChars(), 1,  blockStart,  blockEnd); 
 					//Debugg.println("   it " + it + ", block: " + 1 + ", blockStart=" + blockStart.getValue()+ ", blockEnd=" + blockEnd.getValue());
 					if (blockStart.isCombinable() && blockEnd.isCombinable())  // now let's clean out the original taxon
 						for (int ic=0; ic<data.getNumChars(); ic++) {

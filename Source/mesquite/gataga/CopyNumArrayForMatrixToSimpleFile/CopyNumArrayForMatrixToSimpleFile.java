@@ -60,9 +60,9 @@ public class CopyNumArrayForMatrixToSimpleFile extends FileProcessor {
 			String[] names = numTask.getNumbersNames();
 			String s = "";
 			
-			if (proj.getNumberCharMatricesVisible(file)>1){
+			if (proj.getNumberCharMatricesVisible()>1){
 				s+="\t"; // go to the first matrix start
-				for (int im = 0; im < proj.getNumberCharMatricesVisible(file); im++){
+				for (int im = 0; im < proj.getNumberCharMatricesVisible(); im++){
 					CharacterData data = proj.getCharacterMatrix(file, null, null, im, true);  //DAVIDCHECK: this should be getCharacterMatrixVisible;   
 					s+= data.getName();
 					for (int i=0; i<numTask.getNumberOfNumbers(); i++)
@@ -85,7 +85,7 @@ public class CopyNumArrayForMatrixToSimpleFile extends FileProcessor {
 
 		StringBuffer sb = new StringBuffer();
 		sb.append(file.getName()+"\t");
-		for (int im = 0; im < proj.getNumberCharMatricesVisible(file); im++){  //
+		for (int im = 0; im < proj.getNumberCharMatricesVisible(); im++){  //
 			if (im>0)
 				sb.append("\t");
 			CharacterData data = proj.getCharacterMatrix(file, null, null, im, true); //DAVIDCHECK: this should be getCharacterMatrixVisible
