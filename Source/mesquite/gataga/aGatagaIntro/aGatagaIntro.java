@@ -32,13 +32,35 @@ public class aGatagaIntro extends PackageIntro {
 		return "GatAga Package";
 	}
 	/*.................................................................................................................*/
-	/** Returns citation for a package of modules*/
-	public String getPackageCitation(){
-		return "Maddison, D.R..  2012.  GatAga.  A package of modules for Mesquite for processing high-throughput sequencing data. Version 0.12.";
-	}
-	/*.................................................................................................................*/
 	/** Returns whether there is a splash banner*/
 	public boolean hasSplash(){
 		return true; 
 	}
+	/*.................................................................................................................*/
+	/** Returns citation for a package of modules*/
+ 	public String getPackageCitation(){
+ 		return "Maddison, DR & Maddison WP.  2014.  GatAga: a Mesquite package for processing high-throughput sequencing data. Version "+getPackageVersion();
+ 	}
+	/*.................................................................................................................*/
+	/** Returns version for a package of modules*/
+	public String getPackageVersion(){
+				return "0.4";
+	}
+	/*.................................................................................................................*/
+	/** Returns version for a package of modules as an integer*/
+	public int getPackageVersionInt(){
+		return 400;
+	}
+	/*.................................................................................................................*/
+	public String getPackageDateReleased(){
+		return "29 October 2014";
+	}
+	/*.................................................................................................................*/
+	/** Returns build number for a package of modules as an integer*/
+	public int getPackageBuildNumber(){
+		return 10;
+	}
+	/*  Release dates:
+	 * */
+
 }

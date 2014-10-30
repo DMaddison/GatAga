@@ -91,8 +91,8 @@ public class SequenceMatchToReferenceTaxon extends NumberArrayForMatrix {
 							}
 						}
 					}
-				
-				
+
+
 				if (baseFound) {
 					if (baseMatches)
 						match++;
@@ -106,11 +106,11 @@ public class SequenceMatchToReferenceTaxon extends NumberArrayForMatrix {
 			}
 		} 
 
-	//	4.	Consensus sequence into FASTA file
-		
+		//	4.	Consensus sequence into FASTA file
+
 		int fullyContainedSequences = numSequencesSubsetOfNonReference(parentData);
 
-		
+
 		//NOTE: if the number of numbers output is changed, must change numNumbers above!!!!
 		if (countInRefSequence>0) {
 			result.setValues(new double[] {match*1.0/countInRefSequence, (match+differentNucleotide)*1.0/countInRefSequence, numConflicts*1.0/countInRefSequence, fullyContainedSequences, numTaxa-1}); 
