@@ -109,7 +109,7 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 	}
 
 	/*.................................................................................................................*/
-	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime,  double eValueCutoff, StringBuffer blastResponse, boolean writeCommand) {
+	public void blastForMatches(String blastType, String sequenceName, String sequence, boolean isNucleotides, int numHits, int maxTime,  double eValueCutoff, int wordSize, StringBuffer blastResponse, boolean writeCommand) {
 		
 		getProject().incrementProjectWindowSuppression();
 		
@@ -131,8 +131,17 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		shellScript.append(ShellScriptUtil.getChangeDirectoryCommand(rootDir));
 		String blastCommand = blastType + "  -query " + fileName;
 		blastCommand+= " -db "+databases;
+		if (eValueCutoff>=0.0)
+			blastCommand+= " -evalue "+eValueCutoff;
+		if (wordSize>0)
+			blastCommand+= " -word_size "+wordSize;
 		if (numThreads>1)
 			blastCommand+="  -num_threads " + numThreads;
+
+	//	blastCommand+= " -gapopen 5 -gapextend 2 -reward 1 -penalty -3 ";
+		
+		
+		
 		blastCommand+=" -out " + outFileName + " -outfmt 5";		
 		blastCommand+=" -max_target_seqs " + numHits; // + " -num_alignments " + numHits;// + " -num_descriptions " + numHits;		
 		blastCommand+=" " + programOptions + StringUtil.lineEnding();

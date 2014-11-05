@@ -45,6 +45,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 	int maxTime = 300;
 
 	double eValueCutoff = 1.0E-50;
+	int wordSize = 11;
 	boolean optionsQueried = false;
 	String[] accessionNumbers;
 	String[] ID;
@@ -82,6 +83,8 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 			maxHits = MesquiteInteger.fromString(content);		
 		else if ("eValueCutoff".equalsIgnoreCase(tag))
 			eValueCutoff = MesquiteDouble.fromString(content);		
+		else if ("wordSize".equalsIgnoreCase(tag))
+			wordSize = MesquiteInteger.fromString(content);
 		else if ("blastType".equalsIgnoreCase(tag))
 			blastType = MesquiteInteger.fromString(content);
 	}
@@ -90,6 +93,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 		StringBuffer buffer = new StringBuffer(60);	
 		StringUtil.appendXMLTag(buffer, 2, "maxHits", maxHits);  
 		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
+		StringUtil.appendXMLTag(buffer, 2, "wordSize", wordSize);  
 		StringUtil.appendXMLTag(buffer, 2, "blastType", blastType);  
 		return buffer.toString();
 	}
@@ -104,7 +108,8 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 
 		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", maxHits, 8, 1, Integer.MAX_VALUE);
 		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
- 		blastTypeChoice = dialog.addPopUpMenu("BLAST type for nucleotides", Blaster.getBlastTypeNames(), blastType);
+		IntegerField wordSizeField = dialog.addIntegerField("word size:", wordSize, 8, 1, Integer.MAX_VALUE);
+		blastTypeChoice = dialog.addPopUpMenu("BLAST type for nucleotides", Blaster.getBlastTypeNames(), blastType);
  	//	blastXCheckBox.addItemListener(this);
 
  		dialog.completeAndShowDialog(true);
@@ -114,6 +119,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
  			blastType = blastTypeChoice.getSelectedIndex();
  			if (blastType<0) blastType=oldBlastType;
  			maxHits = numHitsField.getValue();
+ 			wordSize = wordSizeField.getValue();
  			storePreferences();
  		}
  		dialog.dispose();
@@ -139,9 +145,9 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 		//blasterTask.setBlastx(blastx);
 		blasterTask.setBlastType(blastType);
 		if (data instanceof ProteinData)
-			blasterTask.blastForMatches("blastp", sequenceName, sequence.toString(), true, maxHits, maxTime, eValueCutoff,response, true);
+			blasterTask.blastForMatches("blastp", sequenceName, sequence.toString(), true, maxHits, maxTime, eValueCutoff, wordSize, response, true);
 		else {	
-			blasterTask.basicDNABlastForMatches(blastType, sequenceName, sequence.toString(), maxHits, maxTime, eValueCutoff, response, true);
+			blasterTask.basicDNABlastForMatches(blastType, sequenceName, sequence.toString(), maxHits, maxTime, eValueCutoff, wordSize, response, true);
 		}
 
 		BLASTResults blastResults = new BLASTResults(maxHits);

@@ -44,6 +44,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 	boolean saveTopHits = false;
 	boolean resaveFastaFile = false;
 	double eValueCutoff = 10.0;
+	int wordSize = 11;
 	int maxHits = 5;
 	//	boolean idIsNameInLocalFastaFile = false;
 	String localFastaFilePath = null;
@@ -112,6 +113,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			lowerBlastSequenceLength = MesquiteInteger.fromString(content);
 		else if ("maxHits".equalsIgnoreCase(tag))
 			maxHits = MesquiteInteger.fromString(content);		
+		else if ("wordSize".equalsIgnoreCase(tag))
+			wordSize = MesquiteInteger.fromString(content);		
 		else if ("eValueCutoff".equalsIgnoreCase(tag))
 			eValueCutoff = MesquiteDouble.fromString(content);		
 		else {
@@ -129,6 +132,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		StringUtil.appendXMLTag(buffer, 2, "resaveFastaFile", resaveFastaFile);  
 		StringUtil.appendXMLTag(buffer, 2, "blastOption", blastOption);  
 		StringUtil.appendXMLTag(buffer, 2, "lowerBlastSequenceLength", lowerBlastSequenceLength);  
+		StringUtil.appendXMLTag(buffer, 2, "wordSize", wordSize);  
 		StringUtil.appendXMLTag(buffer, 2, "maxHits", maxHits);  
 		StringUtil.appendXMLTag(buffer, 2, "eValueCutoff", eValueCutoff);  
 		for (int i = 0; i < numBlastSeparateCriteria; i++) {
@@ -192,6 +196,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		IntegerField blastLowerLengthField = dialog.addIntegerField("Lower length limit of sequences to be BLASTed:", lowerBlastSequenceLength, 10, 10, Integer.MAX_VALUE);
 		IntegerField numHitsField = dialog.addIntegerField("Number of top hits:", maxHits, 8, 1, Integer.MAX_VALUE);
 		DoubleField eValueCutoffField = dialog.addDoubleField("Reject hits with eValues greater than: ", eValueCutoff, 20, 0.0, Double.MAX_VALUE);
+		IntegerField wordSizeField = dialog.addIntegerField("Word size:", wordSize, 8, 4, Integer.MAX_VALUE);
 		Checkbox resaveFastaFileBox = dialog.addCheckBox("Save copy of original FASTA file but with names appended with top hit", resaveFastaFile);
 		dialog.addHorizontalLine(2);
 		Checkbox saveTopHitsBox = dialog.addCheckBox("Save top hits to new FASTA files", saveTopHits);
@@ -224,6 +229,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			lowerBlastSequenceLength = blastLowerLengthField.getValue();
 			eValueCutoff = eValueCutoffField.getValue();
 			maxHits = numHitsField.getValue();
+			wordSize = wordSizeField.getValue();
 			saveTopHits = saveTopHitsBox.getState();
 			resaveFastaFile = resaveFastaFileBox.getState();
 			fetchTaxonomy = fetchTaxonomyBox.getState();
@@ -579,7 +585,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					BLASTResults blastResult = new BLASTResults(maxHits);
 
 
-					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), maxHits, eValueCutoff, response, taxonNumber==1);
+					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), maxHits, eValueCutoff, wordSize, response, taxonNumber==1);
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 					blasterTask.postProcessingCleanup(blastResult);
