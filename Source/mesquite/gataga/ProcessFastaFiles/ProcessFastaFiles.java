@@ -46,8 +46,11 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	}
 	/*.................................................................................................................*/
 	Vector fileProcessors = null;
-	private void hireProcessorsIfNeeded(){
+	boolean cancelProcessing = false;
+	
+	private boolean hireProcessorsIfNeeded(){
 		int count = 0;
+		
 		if (fileProcessors == null)
 			while (showAlterDialog(count)){
 				if (fileProcessors == null)
@@ -55,8 +58,18 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 				count++;
 				FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireEmployee(FileProcessor.class, "File processor (" + count+ ")");
 				fileProcessors.addElement(processor);
+				if (cancelProcessing){
+					if (fileProcessors != null){
+						for (int i= 0; i< fileProcessors.size(); i++){
+							FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
+							fireEmployee(alterer);
+						}
+					}
+					return false;
+				}
 			}
 		storePreferences();
+		return true;
 	}
 	/*.................................................................................................................*
 	public Snapshot getSnapshot(MesquiteFile file) { 
@@ -261,9 +274,11 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 						steps[i] = "(" + (i+1) + ") " + ((FileProcessor)fileProcessors.elementAt(i)).getNameAndParameters();
 			}
 			dialog.addList (steps, null, null, 8);
-			dialog.completeAndShowDialog("Add", "Done", null, "Done");
+			dialog.completeAndShowDialog("Add", "Done", "Cancel", "Done");
 		}
 		dialog.dispose();
+		if (buttonPressed.getValue()==2)
+			cancelProcessing = true;
 		return (buttonPressed.getValue()==0);
 	}
 	/*.................................................................................................................*/
@@ -301,7 +316,9 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			if (data != null)
 				Debugg.println(" PFF taxa of data " + data.getTaxa());
 				
-			hireProcessorsIfNeeded();  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
+			if (!hireProcessorsIfNeeded()){  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
+				return;
+			}
 			
 			Debugg.println(" PFF data visible: " + data.isUserVisible());
 
@@ -358,7 +375,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 				progIndicator.start();
 				for (int i=0; i<files.length; i++) {
 					progIndicator.setCurrentValue(i);
-					if (progIndicator.isAborted())
+					if (progIndicator.isAborted()|| cancelProcessing) 
 						abort = true;
 					if (abort)
 						break;

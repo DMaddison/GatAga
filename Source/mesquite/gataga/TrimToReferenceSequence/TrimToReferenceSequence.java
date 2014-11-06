@@ -33,7 +33,7 @@ public class TrimToReferenceSequence extends MolecularDataAlterer {
 		int endReference = data.lastApplicable(referenceSequence-1);
 		
 		for (int it = 0; it<data.getNumTaxa(); it++)
-			if (it!=referenceSequence && (table == null || !table.anyRowSelected()||table.wholeRowSelectedAnyWay(it))) {
+			if (it!=referenceSequence-1 && (table == null || !table.anyRowSelected()||table.wholeRowSelectedAnyWay(it))) {
 				for (int ic = 0; ic<startReference; ic++){  // check start
 					data.setState(ic, it, DNAState.inapplicable);
 				}

@@ -71,7 +71,7 @@ public class ExportMergedSequenceUtility extends DataUtility {
 		sb.append(">"+getProject().getHomeFileName()+" [Merged]"+StringUtil.lineEnding());
 		cData.statesIntoStringBufferCore(0, states,  sb,  false,  true,  true);
 		
-		String filePath = module.getProject().getHomeFile().getDirectoryName()+ MesquiteFile.fileSeparator + getProject().getHomeFileName()+" [Merged].fas";
+		String filePath = module.getProject().getHomeFile().getDirectoryName() + getProject().getHomeFileName()+" [Merged].fas";
 		MesquiteFile.putFileContents(filePath, sb.toString(), true);
 		
 
