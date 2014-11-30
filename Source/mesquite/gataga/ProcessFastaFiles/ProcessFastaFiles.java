@@ -283,7 +283,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	}
 	/*.................................................................................................................*/
 	public void processFile(MesquiteFile fileToRead, String arguments) {
-		Debugg.println("Processing file " + fileToRead.getName() + "...");
+		Debugg.println("Processing file " + fileToRead.getName() + " in " + fileToRead.getDirectoryName() + "...");
 		incrementMenuResetSuppression();
 		ProgressIndicator progIndicator = new ProgressIndicator(null,"Importing File "+ fileToRead.getName(), fileToRead.existingLength());
 		progIndicator.start();
