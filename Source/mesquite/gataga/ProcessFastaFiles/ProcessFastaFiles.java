@@ -281,8 +281,12 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			cancelProcessing = true;
 		return (buttonPressed.getValue()==0);
 	}
+	
+	boolean firstResultsOverall = true;
+	boolean firstResultsOverallFound = false;
+	StringBuffer resultsHeading = new StringBuffer();
 	/*.................................................................................................................*/
-	public void processFile(MesquiteFile fileToRead, String arguments) {
+	void processFile(MesquiteFile fileToRead, String arguments, StringBuffer results) {
 		Debugg.println("Processing file " + fileToRead.getName() + " in " + fileToRead.getDirectoryName() + "...");
 		incrementMenuResetSuppression();
 		ProgressIndicator progIndicator = new ProgressIndicator(null,"Importing File "+ fileToRead.getName(), fileToRead.existingLength());
@@ -321,19 +325,35 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			}
 			
 			Debugg.println(" PFF data visible: " + data.isUserVisible());
-
+			boolean firstResult = true;
 			boolean proteinCoding = true;  // query about this  
 			if (fileProcessors != null){
 				boolean success = true;
+				MesquiteString result = new MesquiteString();
 				for (int i= 0; i< fileProcessors.size() && success; i++){
 					FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
 					if (alterer!=null) {
-						success = alterer.processFile(fileToWrite);
+						result.setValue((String)null);
+						success = alterer.processFile(fileToWrite, result);
 
 						if (!success)
 							logln("Sorry,  " + alterer.getNameAndParameters() + " did not succeed in processing the file " + fileToRead.getFileName()+".nex");
-						else 
+						else {
 							logln("" + alterer.getNameAndParameters() + " successfully processed the file " + fileToRead.getFileName()+".nex");
+							if (result.getValue() != null) {
+								firstResultsOverallFound = true;
+								if (firstResult)
+									results.append(fileToRead.getFileName());
+								results.append("\t");
+								results.append(result.getValue());
+								if (firstResultsOverall){
+									if (firstResult)
+										resultsHeading.append("File");
+									resultsHeading.append("\t");
+									resultsHeading.append(alterer.getNameAndParameters());
+								}
+							}
+						}
 					} else
 						logln("There was a problem processing files; one of the processors was null.");
 
@@ -366,6 +386,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		project.getCoordinatorModule().setWhomToAskIfOKToInteractWithUser(this);
 		boolean abort = false;
 		String path = "";
+		StringBuffer results = new StringBuffer();
 		if (directory!=null) {
 			if (directory.exists() && directory.isDirectory()) {
 				//Hire file alterers
@@ -385,7 +406,17 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 						MesquiteFile file = new MesquiteFile();
 						file.setPath(path);
 						if (cFile.exists() && !cFile.isDirectory() && (!files[i].startsWith("."))) {
-							processFile( file,null);
+							results.setLength(0);
+							processFile( file,null, results);
+							if (firstResultsOverallFound && firstResultsOverall && resultsHeading.length()>0){
+								MesquiteFile.appendFileContents(fileToWrite.getDirectoryName() + "ProcessingResults.txt", resultsHeading.toString(), true);
+								MesquiteFile.appendFileContents(fileToWrite.getDirectoryName() + "ProcessingResults.txt", StringUtil.lineEnding(), true);
+								firstResultsOverall = false;
+							}
+							if (results.length()>0){
+								MesquiteFile.appendFileContents(fileToWrite.getDirectoryName() + "ProcessingResults.txt", results.toString(), true);
+								MesquiteFile.appendFileContents(fileToWrite.getDirectoryName() + "ProcessingResults.txt", StringUtil.lineEnding(), true);
+							}
 							logln(" ");
 						}
 					}
@@ -409,10 +440,16 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		directoryPath = MesquiteFile.chooseDirectory("Choose directory containing fasta files:", null); //MesquiteFile.saveFileAsDialog("Base name for files (files will be named <name>1.nex, <name>2.nex, etc.)", baseName);
 		if (StringUtil.blank(directoryPath))
 			return null;
+		
+		// what file reader?
+		// filter by extension?
+		// save script
+		//
+		
 		fileToWrite.setPath(directoryPath+MesquiteFile.fileSeparator+"temp.nex");
 		processDirectory(directoryPath);
 
-		fireEmployee(importer);
+		fireEmployee(importer);  //why would you fire this??? Debugg.println
 		if (success){
 			project.autosave = true;
 			return project;
