@@ -131,9 +131,12 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 		shellScript.append(ShellScriptUtil.getChangeDirectoryCommand(rootDir));
 		String blastCommand = blastType + "  -query " + fileName;
 		blastCommand+= " -db "+databases;
+		blastCommand+=" -task blastn";		// TODO:  does this need to change if the blastType differs?
+
 		if (eValueCutoff>=0.0)
 			blastCommand+= " -evalue "+eValueCutoff;
-		if (wordSize>0)
+		
+		if (wordSize>3)
 			blastCommand+= " -word_size "+wordSize;
 		if (numThreads>1)
 			blastCommand+="  -num_threads " + numThreads;
@@ -164,7 +167,8 @@ public class LocalBlaster extends Blaster implements ShellScriptWatcher {
 			}
 		}
 		deleteSupportDirectory();
-		getProject().decrementProjectWindowSuppression();
+		if (getProject()!=null)
+			getProject().decrementProjectWindowSuppression();
 		logln("   BLAST completed in " +timer.timeSinceLastInSeconds()+" seconds");
 	}	
 	
