@@ -50,10 +50,7 @@ public class MultipleAlignService extends CategDataAlterer {
 		if (!(data instanceof DNAData))
 			return false;
 		long[][] m  = aligner.alignSequences((MCategoricalDistribution)data.getMCharactersDistribution(), null, 0, data.getNumChars()-1, 0, data.getNumTaxa()-1);
-		/*Debugg.println(" m " + m);
-		if (m != null)
-			Debugg.println(" m.length " + m.length);
-			*/
+		
 		if (m==null)
 			return false;
 		boolean success = AlignUtil.integrateAlignment(m, (MolecularData)data,  0, data.getNumChars()-1, 0, data.getNumTaxa()-1);
@@ -81,16 +78,12 @@ public class MultipleAlignService extends CategDataAlterer {
     }
 	/*.................................................................................................................*/
     	 public String getName() {
-		return "Multiple Sequence Alignment";
-   	 }
-    		/*.................................................................................................................*
-    	 public String getNameForMenuItem() {
-		return "Shift Other To Match...";
+		return "Align Sequences in Matrix";
    	 }
 	/*.................................................................................................................*/
  	/** returns an explanation of what the module does.*/
  	public String getExplanation() {
- 		return "Blah blah blah." ;
+ 		return "Performs mulitple sequence alignment using an available aligner." ;
    	 }
    	 
 }

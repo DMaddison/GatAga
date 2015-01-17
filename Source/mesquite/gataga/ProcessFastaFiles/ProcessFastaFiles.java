@@ -47,10 +47,12 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	/*.................................................................................................................*/
 	Vector fileProcessors = null;
 	boolean cancelProcessing = false;
-	
+
 	private boolean hireProcessorsIfNeeded(){
+		if (!firstTime)
+			return true;
 		int count = 0;
-		
+
 		if (fileProcessors == null)
 			while (showAlterDialog(count)){
 				if (fileProcessors == null)
@@ -115,7 +117,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 					fileProcessors = new Vector();
 				fileProcessors.addElement(processor);
 			}
-			
+
 		}
 		else 
 			super.doCommand(commandName, arguments, checker);
@@ -271,7 +273,7 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			String[] steps = new String[fileProcessors.size()];
 			for (int i = 0; i<steps.length; i++){
 				if (fileProcessors.elementAt(i)!=null)
-						steps[i] = "(" + (i+1) + ") " + ((FileProcessor)fileProcessors.elementAt(i)).getNameAndParameters();
+					steps[i] = "(" + (i+1) + ") " + ((FileProcessor)fileProcessors.elementAt(i)).getNameAndParameters();
 			}
 			dialog.addList (steps, null, null, 8);
 			dialog.completeAndShowDialog("Add", "Done", "Cancel", "Done");
@@ -279,9 +281,10 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		dialog.dispose();
 		if (buttonPressed.getValue()==2)
 			cancelProcessing = true;
-		return (buttonPressed.getValue()==0);
+		boolean addProcess =  (buttonPressed.getValue()==0);
+		return addProcess;
 	}
-	
+
 	boolean firstResultsOverall = true;
 	boolean firstResultsOverallFound = false;
 	StringBuffer resultsHeading = new StringBuffer();
@@ -319,17 +322,18 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			Debugg.println(" PFF data " + data);
 			if (data != null)
 				Debugg.println(" PFF taxa of data " + data.getTaxa());
-				
+
 			if (!hireProcessorsIfNeeded()){  //needs to be done here after file read in case alterers need to know if there are matrices etc in file
 				return;
 			}
-			
+
 			Debugg.println(" PFF data visible: " + data.isUserVisible());
 			boolean firstResult = true;
 			boolean proteinCoding = true;  // query about this  
 			if (fileProcessors != null){
 				boolean success = true;
 				MesquiteString result = new MesquiteString();
+				results.append(fileToRead.getFileName());
 				for (int i= 0; i< fileProcessors.size() && success; i++){
 					FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
 					if (alterer!=null) {
@@ -342,10 +346,10 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 							logln("" + alterer.getNameAndParameters() + " successfully processed the file " + fileToRead.getFileName()+".nex");
 							if (result.getValue() != null) {
 								firstResultsOverallFound = true;
-								if (firstResult)
-									results.append(fileToRead.getFileName());
 								results.append("\t");
 								results.append(result.getValue());
+								results.append("");
+								result.setValue((String)null);
 								if (firstResultsOverall){
 									if (firstResult)
 										resultsHeading.append("File");
@@ -358,9 +362,13 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 						logln("There was a problem processing files; one of the processors was null.");
 
 				}
+				firstResult = false;
 			}
 			//processData((DNAData)data, taxa, proteinCoding);   // query about this
-
+			results.append("\n");
+			if (firstResultsOverall){
+				resultsHeading.append("\n");
+			}
 
 			writeFile(fileToWrite);
 			MesquiteFile.appendFileContents(fileToWrite.getPath(), appendToFile(proteinCoding), true);
@@ -440,12 +448,12 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 		directoryPath = MesquiteFile.chooseDirectory("Choose directory containing fasta files:", null); //MesquiteFile.saveFileAsDialog("Base name for files (files will be named <name>1.nex, <name>2.nex, etc.)", baseName);
 		if (StringUtil.blank(directoryPath))
 			return null;
-		
+
 		// what file reader?
 		// filter by extension?
 		// save script
 		//
-		
+
 		fileToWrite.setPath(directoryPath+MesquiteFile.fileSeparator+"temp.nex");
 		processDirectory(directoryPath);
 

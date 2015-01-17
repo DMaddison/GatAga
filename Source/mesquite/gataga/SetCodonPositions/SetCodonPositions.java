@@ -49,7 +49,7 @@ public class SetCodonPositions extends DNADataAlterer {
 		ExtensibleDialog queryDialog = new ExtensibleDialog(containerOfModule(), "Setting Codon Positions",  buttonPressed);
 		queryDialog.addLabel("Setting Codon Positions of selected characters", Label.CENTER);
 		RadioButtons choices = queryDialog.addRadioButtons (new String[]{"123123...", "23123...", "3123...", "Minimize Stop Codons"}, 0);
-		DoubleField skip = queryDialog.addDoubleField ("Skip (and set non-coding) sites with % gaps >", skipPercentage, 6, 0, 100.00);
+		DoubleField skip = queryDialog.addDoubleField ("Skip (and set non-coding) sites with % internal gaps >", skipPercentage, 6, 0, 100.00);
 
 		queryDialog.completeAndShowDialog(true);
 
@@ -130,7 +130,7 @@ public class SetCodonPositions extends DNADataAlterer {
 	}
 	/*.................................................................................................................*/
 	private void setPositions(int position,  boolean notify, boolean noColumnsSelected, DNAData data, MesquiteTable table){
-		if (table !=null && data!=null) {
+		if (data!=null) {
 			boolean changed=false;
 			MesquiteNumber num = new MesquiteNumber();
 			num.setValue(position);
@@ -166,7 +166,7 @@ public class SetCodonPositions extends DNADataAlterer {
 	}
 	/*.................................................................................................................*/
 	private void setPositionsMinStops(boolean notify, boolean noColumnsSelected, DNAData data, MesquiteTable table){
-		if (table !=null && data!=null) {
+		if (data!=null) {
 			Taxa taxa = data.getTaxa();
 			int minStops = -1;
 			int posMinStops = 1;

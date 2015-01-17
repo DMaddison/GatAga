@@ -34,7 +34,7 @@ public class SaveMatricesFileProcessor extends FileProcessor {
 	MesquiteTable table;
 	CharacterData data;
 	MesquiteSubmenuSpec mss= null;
-	FileInterpreterI exporterTask;
+	FileInterpreter exporterTask;
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		/*if (arguments !=null) {
@@ -78,7 +78,7 @@ public class SaveMatricesFileProcessor extends FileProcessor {
 	/*.................................................................................................................*/
 	public Object doCommand(String commandName, String arguments, CommandChecker checker) {
 		if (checker.compare(this.getClass(), "Sets the module that alters data", "[name of module]", commandName, "setFileInterpreter")) {
-			FileInterpreterI temp =  (FileInterpreterI)replaceEmployee(FileInterpreter.class, arguments, "Exporter", exporterTask);
+			FileInterpreter temp =  (FileInterpreter)replaceEmployee(FileInterpreter.class, arguments, "Exporter", exporterTask);
 			if (temp!=null) {
 				exporterTask = temp;
 				return exporterTask;
@@ -164,7 +164,7 @@ public class SaveMatricesFileProcessor extends FileProcessor {
 			usePrevious = true;
 		MesquiteProject proj = file.getProject();
 		FileCoordinator coord = getFileCoordinator();
-		exporterTask = (FileInterpreterI)coord.findEmployeeWithName(exporterString);
+		exporterTask = (FileInterpreter)coord.findEmployeeWithName(exporterString);
 		if (exporterTask == null)
 			return false;
 		Taxa taxa;
@@ -231,11 +231,11 @@ public class SaveMatricesFileProcessor extends FileProcessor {
 	public void saveFile(String exporterName, MesquiteFile file, String fileName, String directoryPath, FileCoordinator coord, boolean usePrevious){
 		if (exporterName.equals("NEXUS file"))
 			coord.writeFile(file);
-		else {
+		else if (exporterTask instanceof FileInterpreterI) {
 				String s = "file = " + StringUtil.tokenize(fileName) + " directory = " + StringUtil.tokenize(directoryPath) + " noTrees";
 				if (usePrevious)
 					s += " usePrevious";
-				coord.export(exporterTask, file, s);
+				coord.export((FileInterpreterI)exporterTask, file, s);
 			}
 	}
 
