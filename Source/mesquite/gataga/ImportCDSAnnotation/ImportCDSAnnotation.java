@@ -320,7 +320,7 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 				}
 				if (isReverse){
 					for (int it=0; it<data.getNumTaxa(); it++)
-						data.reverseComplement(0, data.getNumChars()-1, it, true, true);  s
+						data.reverseComplement(0, data.getNumChars()-1, it, true, true);  
 					data.reverseAssociated();
 				}
 				data.notifyListeners(this, new Notification(MesquiteListener.DATA_CHANGED));  
