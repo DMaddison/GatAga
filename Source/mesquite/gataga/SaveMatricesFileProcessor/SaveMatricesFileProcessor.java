@@ -193,7 +193,7 @@ public class SaveMatricesFileProcessor extends FileProcessor {
 				
 				Debugg.println("path " + path);
 				Debugg.println("fileName " + fileName);
-				path = path + "." + exporterTask.preferredDataFileExtension();
+				path = path + "." + exporterTask.preferredDataFileExtension(); 
 				fileName = fileName + "." + exporterTask.preferredDataFileExtension();
 				MesquiteFile tempDataFile = (MesquiteFile)coord.doCommand("newLinkedFile", StringUtil.tokenize(path), CommandChecker.defaultChecker); //TODO: never scripting???
 				TaxaManager taxaManager = (TaxaManager)findElementManager(Taxa.class);
@@ -201,11 +201,20 @@ public class SaveMatricesFileProcessor extends FileProcessor {
 				newTaxa.addToFile(tempDataFile, null, taxaManager);
 
 				tempDataFile.exporting =1;
+				if (data.getNumChars()  == 0){
+					MesquiteMessage.warnUser("Matrix to be written has no characters; it will not be written.  Name: " + data.getName() + " (type: " + data.getDataTypeName() + ")");
+					return false;
+				}
 				CharacterData			newMatrix = data.cloneData();
+				if (newMatrix == null){
+					MesquiteMessage.warnUser("Matrix NOT successfully cloned for file saving: " + data.getName() + " (type: " + data.getDataTypeName() + "; " + data.getNumChars() + " characters)");
+					return false;
+				}
 				newMatrix.setName(data.getName());
 
 				logln("Saving file " + path);	
 				newMatrix.addToFile(tempDataFile, getProject(), null);
+				data.copyCurrentSpecsSetsTo(newMatrix);
 				tempDataFile.setPath(path);
 
 

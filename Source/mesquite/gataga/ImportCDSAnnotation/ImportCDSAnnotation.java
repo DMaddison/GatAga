@@ -136,7 +136,7 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 	int getStartCDS(int whichRow){
 		if (annotations == null)
 			return -1;
-		if (whichRow >= annotations.length)
+		if (whichRow < 0 || whichRow >= annotations.length)
 			return -1;
 		if (annotations[whichRow].length < 2)
 			return -1;
@@ -150,7 +150,7 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 	int getEndCDS(int whichRow){
 		if (annotations == null)
 			return -1;
-		if (whichRow >= annotations.length)
+		if (whichRow < 0 || whichRow >= annotations.length)
 			return -1;
 		if (annotations[whichRow].length < 3)
 			return -1;
@@ -164,7 +164,7 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 	int getFirstPosition(int whichRow){
 		if (annotations == null)
 			return 1;
-		if (whichRow >= annotations.length)
+		if (whichRow < 0 || whichRow >= annotations.length)
 			return 1;
 		if (annotations[whichRow].length < 5)
 			return 1;
@@ -178,7 +178,7 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 	boolean getReverse(int whichRow){
 		if (annotations == null)
 			return false;
-		if (whichRow >= annotations.length)
+		if (whichRow < 0 || whichRow >= annotations.length)
 			return false;
 		if (annotations[whichRow].length < 4)
 			return false;
@@ -215,6 +215,10 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 		//use name of this file to find 
 		String fileName = getProject().getHomeFileName();
 		int whichRow = findRow(fileName);
+		if (whichRow <0){
+			MesquiteMessage.warnUser("WARNING: No reference to file " + fileName + " found in CSV file ");
+			return false;
+		}
 		int startCDS = getStartCDS(whichRow);
 		int endCDS = getEndCDS(whichRow);
 		boolean isReverse = getReverse(whichRow);
@@ -319,9 +323,7 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 
 				}
 				if (isReverse){
-					for (int it=0; it<data.getNumTaxa(); it++)
-						data.reverseComplement(0, data.getNumChars()-1, it, true, true);  
-					data.reverseAssociated();
+						data.reverseComplement(0, data.getNumChars()-1, true);  
 				}
 				data.notifyListeners(this, new Notification(MesquiteListener.DATA_CHANGED));  
 			}
