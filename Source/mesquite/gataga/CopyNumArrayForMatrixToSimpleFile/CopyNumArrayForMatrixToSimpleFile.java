@@ -3,6 +3,7 @@ package mesquite.gataga.CopyNumArrayForMatrixToSimpleFile;
 
 import java.awt.FileDialog;
 
+import mesquite.align.lib.MultipleSequenceAligner;
 import mesquite.lib.*;
 import mesquite.lib.characters.CharacterData;
 import mesquite.lib.duties.*;
@@ -23,6 +24,30 @@ public class CopyNumArrayForMatrixToSimpleFile extends FileProcessor {
 			return sorry(getName() + " couldn't start because no NumberForMatrix module could be obtained.");
 		return true;
 	}
+	/*.................................................................................................................*/
+	 public Snapshot getSnapshot(MesquiteFile file) { 
+ 	 	Snapshot temp = new Snapshot();
+	 	temp.addLine("setNumberTask ", numTask); 
+	 	return temp;
+	 }
+	 	public String getNameForProcessorList() {
+	 		if (numTask != null)
+	 			return getName() + "(" + numTask.getName() + ")";
+	 		return getName();
+	   	}
+	/*.................................................................................................................*/
+  	 public Object doCommand(String commandName, String arguments, CommandChecker checker) {
+  	 	if (checker.compare(this.getClass(), "Sets the number task", "[name of module]", commandName, "setNumberTask")) {
+  	 		NumberArrayForMatrix temp = (NumberArrayForMatrix)replaceEmployee(NumberArrayForMatrix.class, arguments, "Aligner", numTask);
+			if (temp !=null){
+				numTask = temp;
+  	 			return numTask;
+  	 		}
+  	 	}
+  	 	
+		else return  super.doCommand(commandName, arguments, checker);
+		return null;
+ 	 }
 	/*.................................................................................................................*/
 	/** returns whether this module is requesting to appear as a primary choice */
 	public boolean requestPrimaryChoice(){

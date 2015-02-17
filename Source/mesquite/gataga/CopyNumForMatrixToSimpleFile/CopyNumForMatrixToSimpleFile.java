@@ -28,6 +28,30 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 	public boolean requestPrimaryChoice(){
 		return false;  
 	}
+ 	public String getNameForProcessorList() {
+ 		if (numTask != null)
+ 			return getName() + "(" + numTask.getName() + ")";
+ 		return getName();
+   	}
+	/*.................................................................................................................*/
+	 public Snapshot getSnapshot(MesquiteFile file) { 
+	 	Snapshot temp = new Snapshot();
+	 	temp.addLine("setNumberTask ", numTask); 
+	 	return temp;
+	 }
+	/*.................................................................................................................*/
+ 	 public Object doCommand(String commandName, String arguments, CommandChecker checker) {
+ 	 	if (checker.compare(this.getClass(), "Sets the number task", "[name of module]", commandName, "setNumberTask")) {
+ 	 		NumberForMatrix temp = (NumberForMatrix)replaceEmployee(NumberForMatrix.class, arguments, "Aligner", numTask);
+			if (temp !=null){
+				numTask = temp;
+ 	 			return numTask;
+ 	 		}
+ 	 	}
+ 	 	
+		else return  super.doCommand(commandName, arguments, checker);
+		return null;
+	 }
 	/*.................................................................................................................*/
 	public boolean isPrerelease(){
 		return true;

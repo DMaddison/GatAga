@@ -39,10 +39,35 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	InterpretFasta importer = null;
 	MesquiteFile fileToWrite;
 
-
+	String script = null;
+	boolean incorporateScript = false;
+	/*"addProcessor  #mesquite.charMatrices.AlterAllMatrices.AlterAllMatrices;\n"
+			+" tell It;\n"
+			+"  	setDataAlterer  #mesquite.gataga.MultipleAlignService.MultipleAlignService;\n"
+			+"  	tell It;\n"
+			+"  		setAligner  #mesquite.align.MAFFTAlign.MAFFTAlign;\n"
+			+"  	endTell;\n"
+			+"endTell;\n"
+			+" addProcessor  #mesquite.charMatrices.AlterAllMatrices.AlterAllMatrices;\n"
+			+" tell It;\n"
+			+" 	setDataAlterer  #mesquite.gataga.SetCodonPositions.SetCodonPositions;\n"
+			+"endTell;\n";
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName){
+		loadPreferences();
 		return true;
+	}
+	/*.................................................................................................................*/
+	public void processSingleXMLPreference (String tag, String content) {
+		if ("script".equalsIgnoreCase(tag))
+			script = StringUtil.cleanXMLEscapeCharacters(content);
+
+	}
+	/*.................................................................................................................*/
+	public String preparePreferencesForXML () {
+		StringBuffer buffer = new StringBuffer(60);	
+		StringUtil.appendXMLTag(buffer, 2, "script", script);  
+		return buffer.toString();
 	}
 	/*.................................................................................................................*/
 	Vector fileProcessors = null;
@@ -51,26 +76,45 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	private boolean hireProcessorsIfNeeded(){
 		if (!firstTime)
 			return true;
-		int count = 0;
 
-		if (fileProcessors == null)
-			while (showAlterDialog(count)){
-				if (fileProcessors == null)
-					fileProcessors = new Vector();
-				count++;
-				FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireEmployee(FileProcessor.class, "File processor (" + count+ ")");
-				fileProcessors.addElement(processor);
-				if (cancelProcessing){
-					if (fileProcessors != null){
-						for (int i= 0; i< fileProcessors.size(); i++){
-							FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
-							fireEmployee(alterer);
-						}
-					}
-					return false;
+		if (fileProcessors == null){
+			fileProcessors = new Vector();
+
+			String currentScript = script;
+			if (currentScript == null)
+				currentScript = "";
+			while (showAlterDialog(fileProcessors.size())){
+				if (incorporateScript){
+					if (script != null){    //HERE IT SHOULD QUERY and give a choice of options like availabel macros, saved with names, rather than just the single previous script
+						Puppeteer p = new Puppeteer(this);
+						CommandRecord mr = MesquiteThread.getCurrentCommandRecord();
+						MesquiteThread.setCurrentCommandRecord(CommandRecord.macroRecord);
+						p.execute(this, script, new MesquiteInteger(0), null, false);
+						MesquiteThread.setCurrentCommandRecord(mr);
+					}	
+					incorporateScript = false;
 				}
+				else {
+					FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireEmployee(FileProcessor.class, "File processor (" + (fileProcessors.size() + 1)+ ")");
+					currentScript += "\naddProcessor " + " #" + processor.getClass().getName() + ";\n";
+					String sn =Snapshot.getSnapshotCommands(processor, getProject().getHomeFile(), "  ");
+					currentScript +="\ntell It;\n" + sn + "\nendTell;";
+					fileProcessors.addElement(processor);
+					if (cancelProcessing){
+						if (fileProcessors != null){
+							for (int i= 0; i< fileProcessors.size(); i++){
+								FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
+								fireEmployee(alterer);
+							}
+						}
+						return false;
+					}
+				}
+
 			}
-		storePreferences();
+			script = currentScript;
+			storePreferences();
+		}
 		return true;
 	}
 	/*.................................................................................................................*
@@ -108,16 +152,16 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	}
 
 	MesquiteInteger pos = new MesquiteInteger();
-	/*.................................................................................................................*
+	/*.................................................................................................................*/
 	public Object doCommand(String commandName, String arguments, CommandChecker checker) {
-		if (checker.compare(this.getClass(), "Sets the module processing files", "[name of module]", commandName, "setFileProcessor")) {
+		if (checker.compare(this.getClass(), "Sets the module processing files", "[name of module]", commandName, "addProcessor")) {
 			FileProcessor processor = (FileProcessor)project.getCoordinatorModule().hireNamedEmployee(FileProcessor.class, arguments);
 			if (processor!=null) {
 				if (fileProcessors == null)
 					fileProcessors = new Vector();
 				fileProcessors.addElement(processor);
 			}
-
+			return processor;
 		}
 		else 
 			super.doCommand(commandName, arguments, checker);
@@ -263,9 +307,14 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 	public boolean showAlterDialog(int count) {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
 		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Add File Processor?",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
+		boolean initialSetup = false;
 		if (count == 0){
 			dialog.addLabel("For each file examined, do you want to process it?");
-			dialog.completeAndShowDialog("Yes", "No", null, "No");
+			String b2 = "Use Previous";
+			if (script == null)
+				b2 = null;
+			dialog.completeAndShowDialog("Yes", "No", b2, "No");
+			initialSetup = true;
 		}
 		else {
 			dialog.addLabel("For each file examined, do you want to add another step in processing it?");
@@ -279,9 +328,15 @@ public class ProcessFastaFiles extends GeneralFileMaker {
 			dialog.completeAndShowDialog("Add", "Done", "Cancel", "Done");
 		}
 		dialog.dispose();
-		if (buttonPressed.getValue()==2)
-			cancelProcessing = true;
 		boolean addProcess =  (buttonPressed.getValue()==0);
+		if (buttonPressed.getValue()==2) {
+			if (initialSetup) {
+				addProcess = true;
+				incorporateScript = true;				
+			}
+			else
+				cancelProcessing = true;
+		}
 		return addProcess;
 	}
 

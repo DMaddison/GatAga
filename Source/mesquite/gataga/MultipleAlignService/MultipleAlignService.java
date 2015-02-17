@@ -37,6 +37,26 @@ public class MultipleAlignService extends CategDataAlterer {
    	public boolean requestPrimaryChoice(){
    		return true;  
    	}
+	/*.................................................................................................................*/
+ 	 public Snapshot getSnapshot(MesquiteFile file) { 
+  	 	Snapshot temp = new Snapshot();
+ 	 	temp.addLine("setAligner ", aligner); 
+ 	 	return temp;
+ 	 }
+	MesquiteInteger pos = new MesquiteInteger();
+	/*.................................................................................................................*/
+   	 public Object doCommand(String commandName, String arguments, CommandChecker checker) {
+   	 	if (checker.compare(this.getClass(), "Sets the aligner", "[name of module]", commandName, "setAligner")) {
+   	 	MultipleSequenceAligner temp = (MultipleSequenceAligner)replaceEmployee(MultipleSequenceAligner.class, arguments, "Aligner", aligner);
+			if (temp !=null){
+				aligner = temp;
+   	 			return aligner;
+   	 		}
+   	 	}
+   	 	
+		else return  super.doCommand(commandName, arguments, checker);
+		return null;
+  	 }
 
 	/*.................................................................................................................*/
    	public void alterCell(CharacterData data, int ic, int it){
