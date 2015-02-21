@@ -255,7 +255,6 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 			MesquiteNumber num = new MesquiteNumber();
 			if (isReverse) {
 				int lastPosition = (firstPosition + (end-start))% 3;
-				Debugg.println("last positition " + lastPosition);
 				if (lastPosition == 0)
 					lastPosition = 3;
 				num.setValue(lastPosition);
