@@ -97,7 +97,7 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 						if (fileProcessors != null){
 							for (int i= 0; i< fileProcessors.size(); i++){
 								FileProcessor alterer = (FileProcessor)fileProcessors.elementAt(i);
-								fireEmployee(alterer);
+								project.getCoordinatorModule().fireEmployee(alterer);
 							}
 						}
 						return false;
@@ -198,7 +198,7 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 		ProgressIndicator progIndicator = new ProgressIndicator(null,"Importing File "+ fileToRead.getName(), fileToRead.existingLength());
 		progIndicator.start();
 		fileToRead.linkProgressIndicator(progIndicator);
-
+		
 		if (fileToRead.openReading()) {
 			importer.readFile(getProject(), fileToRead, null);	
 			getProject().getCoordinatorModule().wrapUpAfterFileRead(fileToRead);
