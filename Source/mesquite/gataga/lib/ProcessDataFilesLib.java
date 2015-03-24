@@ -198,7 +198,7 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 		ProgressIndicator progIndicator = new ProgressIndicator(null,"Importing File "+ fileToRead.getName(), fileToRead.existingLength());
 		progIndicator.start();
 		fileToRead.linkProgressIndicator(progIndicator);
-		
+		fileToRead.readMesquiteBlock = false;
 		if (fileToRead.openReading()) {
 			importer.readFile(getProject(), fileToRead, null);	
 			getProject().getCoordinatorModule().wrapUpAfterFileRead(fileToRead);

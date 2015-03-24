@@ -205,15 +205,15 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 
 		}
 		UndoInstructions undoInstructions = data.getUndoInstructionsAllData();
-
+		
 		if (annotations == null)
 			annotations = MesquiteFile.getTabDelimitedTextFile(annotationPath, false);
 		int refTaxon = taxa.whichTaxonNumber(referenceTaxon);
 		if (refTaxon < 0){
-			MesquiteMessage.warnUser("WARNING: Reference taxon " + referenceTaxon + " not found in data matrix in file " + getProject().getHomeFile().getFileName());
+			MesquiteMessage.warnUser("WARNING: Reference taxon " + referenceTaxon + " not found in data matrix in file " + dData.getFile().getFileName());
 		}
 		//use name of this file to find 
-		String fileName = getProject().getHomeFileName();
+		String fileName = dData.getFile().getFileName();
 		int whichRow = findRow(fileName);
 		if (whichRow <0){
 			MesquiteMessage.warnUser("WARNING: No reference to file " + fileName + " found in CSV file ");
