@@ -71,10 +71,13 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 		if (fileProcessors == null){
 			fileProcessors = new Vector();
 
-			String currentScript = script;
-			if (currentScript == null)
-				currentScript = "";
+			String currentScript = null;
 			while (showAlterDialog(fileProcessors.size())){
+				if (currentScript == null){
+					currentScript = script;
+					if (currentScript == null)
+						currentScript = "";
+				}
 				if (incorporateScript){
 					if (script != null){    //HERE IT SHOULD QUERY and give a choice of options like availabel macros, saved with names, rather than just the single previous script
 						Puppeteer p = new Puppeteer(this);
@@ -155,14 +158,13 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 	public boolean showAlterDialog(int count) {
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
 		ExtensibleDialog dialog = new ExtensibleDialog(containerOfModule(), "Add File Processor?",buttonPressed);  //MesquiteTrunk.mesquiteTrunk.containerOfModule()
-		boolean initialSetup = false;
-		if (count == 0){
+		boolean initialSetup = count == 0;
+		if (initialSetup){
 			dialog.addLabel("For each file examined, do you want to process it?");
 			String b2 = "Use Previous";
 			if (StringUtil.blank(script))
 				b2 = null;
 			dialog.completeAndShowDialog("Yes", "No", b2, "No");
-			initialSetup = true;
 		}
 		else {
 			dialog.addLabel("For each file examined, do you want to add another step in processing it?");
@@ -185,6 +187,8 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 			else
 				cancelProcessing = true;
 		}
+		else if (initialSetup)
+			script = "";
 		return addProcess;
 	}
 
@@ -320,6 +324,7 @@ public class ProcessDataFilesLib extends GeneralFileMaker {
 
 			}
 		}
+		project.getCoordinatorModule().setWhomToAskIfOKToInteractWithUser(null);
 	}
 	public boolean okToInteractWithUser(int howImportant, String messageToUser){
 		return firstTime;

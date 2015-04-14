@@ -11,21 +11,17 @@ Mesquite's web site is http://mesquiteproject.org
 This source code and its compiled class files are free and modifiable under the terms of 
 GNU Lesser General Public License.  (http://www.gnu.org/copyleft/lesser.html)
  */
-package mesquite.gataga.DeleteInternalGappy;
+package mesquite.gataga.DeleteCharactersWithoutCodonPosition;
 /*~~  */
 
-import java.awt.Checkbox;
-import java.awt.Dialog;
-import java.awt.Label;
 
 import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.categ.lib.*;
 import mesquite.lib.table.*;
-import mesquite.lists.lib.ListModule;
 
 /* ======================================================================== */
-public class DeleteInternalGappy extends DNADataAlterer {
+public class DeleteCharactersWithoutCodonPosition extends DNADataAlterer {
 	MesquiteTable table;
 	CharacterData data;
 	/*.................................................................................................................*/
@@ -40,35 +36,16 @@ public class DeleteInternalGappy extends DNADataAlterer {
 			return true;
 		return false;
 	}
-
-	double gapPercentage = 100.00;
+	int codonPositionNOTToDelete =0;
 
 	boolean queryOptions(){
-		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog queryDialog = new ExtensibleDialog(containerOfModule(), "Delete Sites with Many Internal Gaps",  buttonPressed);
-		DoubleField perc = queryDialog.addDoubleField ("Delete sites with % internal gaps >", gapPercentage, 6, 0, 100.00);
-
-		queryDialog.completeAndShowDialog(true);
-
-		boolean ok = (queryDialog.query()==0);
-
-		if (ok) {
-			gapPercentage = perc.getValue();
-		}
-
-		queryDialog.dispose();   		 
-
-		return ok;
+		codonPositionNOTToDelete =  MesquiteInteger.queryInteger(containerOfModule(), "Delete Characters Without Codon Position", "Delete Characters Without Codon Position (0 = noncoding; 1, 2, 3)", 0, 0, 3, true);
+		return MesquiteInteger.isCombinable(codonPositionNOTToDelete);
 	}
 	/*.................................................................................................................*/
 	/** Called to alter data in those cells selected in table*/
-	public boolean alterData(CharacterData dData, MesquiteTable table,  UndoReference undoReference){
+	public boolean alterData(CharacterData data, MesquiteTable table,  UndoReference undoReference){
 		this.table = table;
-		if (!(dData instanceof DNAData)){
-			MesquiteMessage.warnProgrammer("Can use " + getName() + " only on DNA data");
-			return false;
-		}
-		DNAData data = (DNAData)dData;
 		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
 			boolean ok = queryOptions();
 			if (!ok)
@@ -78,9 +55,10 @@ public class DeleteInternalGappy extends DNADataAlterer {
 		UndoInstructions undoInstructions = null;
 		if (undoReference!=null)
 			undoInstructions =data.getUndoInstructionsAllData();
-		boolean noColumnsSelected =  !((table != null && table.anyColumnSelected()) || data.anySelected());
-
-		deleteGappy(false,  noColumnsSelected,  data,  table); 
+		CodonPositionsSet codPosSet = (CodonPositionsSet)data.getCurrentSpecsSet(CodonPositionsSet.class);
+		if (codPosSet == null)
+			return false;
+		deleteDeletable(data,  table, codPosSet); 
 
 		if (undoReference!=null){
 			if (undoInstructions!=null){
@@ -103,42 +81,18 @@ public class DeleteInternalGappy extends DNADataAlterer {
 	public boolean isPrerelease() {
 		return true;
 	}
-	boolean deletable(int ic, DNAData data){
-		if (gapPercentage >99.99999)
-			return false;
-		int countWithData = 0;
-		int countInternalInapplicable = 0;
-		int keepThreshold = (int)((100-gapPercentage-0.000001)/100.00*data.getNumTaxa());
-		for (int it = 0; it<data.getNumTaxa(); it++)  // && countWithData<keepThreshold
-			if (!data.isInapplicable(ic, it)) 
-				countWithData++;
-			else if (data.isInternalInapplicable(ic, it)) 
-				countInternalInapplicable++;
-		if (countWithData>keepThreshold)
-			return false;
-		int thresholdSkip = (int)((gapPercentage+0.000001)/100.00*(countWithData + countInternalInapplicable));
-		if (countInternalInapplicable<=thresholdSkip)
-			return false;
-		return true;
-	}
 	/*.................................................................................................................*/
-	private void deleteGappy(boolean notify, boolean noColumnsSelected, DNAData data, MesquiteTable table){
+	private void deleteDeletable(CharacterData data, MesquiteTable table, CodonPositionsSet codPosSet){
 		if (data!=null) {
-			boolean changed=false;
 			for (int ic=data.getNumChars()-1; ic>=0; ic--) {
-				if (noColumnsSelected || isSelected(ic, data, table)){
-					if (deletable(ic, data)) { 
+				if (codPosSet != null) {
+					int cP = codPosSet.getInt(ic);
+					if (cP != codonPositionNOTToDelete){
 						data.deleteCharacters(ic, 1, false);
 						data.deleteInLinked(ic, 1, false);
-						changed = true;
 					}
 				}
 
-			}
-
-			if (notify) {
-				if (changed)
-					data.notifyListeners(this, new Notification(MesquiteListener.PARTS_DELETED));  
 			}
 		}
 	}
@@ -149,12 +103,12 @@ public class DeleteInternalGappy extends DNADataAlterer {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Delete Sites with Many Internal Gaps";
+		return "Delete Characters Without Codon Position";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/
 	public String getExplanation() {
-		return "Deletes sites which have many gaps within coding regions." ;
+		return "Deletes characters that are NOT of a particular codon position." ;
 	}
 	/*.................................................................................................................*/
 	/** returns the version number at which this module was first released.  If 0, then no version number is claimed.  If a POSITIVE integer
