@@ -52,33 +52,40 @@ public class TaxonNamesToMatchTargetList extends FileProcessor {
 			MesquiteString fileName = new MesquiteString();
 			String path = MesquiteFile.openFileDialog("Target list of taxon names",  directoryName,  fileName);
 			targetList = MesquiteFile.getFileContentsAsStrings(path);
+			if (targetList != null){
+				Debugg.println("Target names");
+				for (int i= 0; i<targetList.length; i++)
+					Debugg.println("   " + targetList[i]);
+			}
 		}
-   		if (targetList == null)
-   			return false;
-   		for (int im = 0; im < proj.getNumberTaxas(file); im++){
-   			Taxa taxa = proj.getTaxa(file, im);
-   			//Debugg.println checkCompatibility
-   			
-   			Debugg.println("Altering taxa block " + im + " (" + taxa.getName() + ", id = " + taxa.getID() + ")");
-   			for (int iL = 0; iL< targetList.length; iL++){
-   				String target = targetList[iL];
-   				int count = 0;
-   				int iMatched = -1;
-   				for (int it=0; it<taxa.getNumTaxa() && count<2; it++){
-   					String name = taxa.getTaxonName(it);
-   					if (StringUtil.indexOfIgnoreCase(name, target)>=0){
-   						count++;
-   						if (count == 1)
-   							iMatched = it;
-   						else if (count>1)
-   							iMatched = -1;
-   					}
-   						
-   				}
-   				if (iMatched >=0)
-   					taxa.setTaxonName(iMatched, target);
-   			}
-   		}
+		if (targetList == null){
+			Debugg.println("No Target List obtained");
+			return false;
+		}
+		for (int im = 0; im < proj.getNumberTaxas(file); im++){
+			Taxa taxa = proj.getTaxa(file, im);
+			//Debugg.println checkCompatibility
+
+			Debugg.println("Altering taxa block " + im + " (" + taxa.getName() + ", id = " + taxa.getID() + ")");
+			for (int iL = 0; iL< targetList.length; iL++){
+				String target = targetList[iL];
+				int count = 0;
+				int iMatched = -1;
+				for (int it=0; it<taxa.getNumTaxa() && count<2; it++){
+					String name = taxa.getTaxonName(it);
+					if (StringUtil.indexOfIgnoreCase(name, target)>=0){
+						count++;
+						if (count == 1)
+							iMatched = it;
+						else if (count>1)
+							iMatched = -1;
+					}
+
+				}
+				if (iMatched >=0)
+					taxa.setTaxonName(iMatched, target);
+			}
+		}
 		return true;
 
 	}
