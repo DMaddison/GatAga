@@ -52,21 +52,25 @@ public class TaxonNamesToMatchTargetList extends FileProcessor {
 			MesquiteString fileName = new MesquiteString();
 			String path = MesquiteFile.openFileDialog("Target list of taxon names",  directoryName,  fileName);
 			targetList = MesquiteFile.getFileContentsAsStrings(path);
-			if (targetList != null){
-				Debugg.println("Target names");
-				for (int i= 0; i<targetList.length; i++)
-					Debugg.println("   " + targetList[i]);
-			}
+			/*if (targetList != null){
+			Debugg.println("Target names");
+			for (int i= 0; i<targetList.length; i++)
+				Debugg.println("   " + targetList[i]);
+		}*/
 		}
 		if (targetList == null){
-			Debugg.println("No Target List obtained");
+			if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "No target list"))
+				alert("No Target List obtained");
 			return false;
 		}
+		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "No target list"))
+			alert("Target List [taxon names in square brackets]: " + StringArray.toString(targetList));
+
 		for (int im = 0; im < proj.getNumberTaxas(file); im++){
 			Taxa taxa = proj.getTaxa(file, im);
 			//Debugg.println checkCompatibility
 
-			Debugg.println("Altering taxa block " + im + " (" + taxa.getName() + ", id = " + taxa.getID() + ")");
+			MesquiteMessage.println("Changing names of taxa in block " + im + " (" + taxa.getName() + ", id = " + taxa.getID() + ")");
 			for (int iL = 0; iL< targetList.length; iL++){
 				String target = targetList[iL];
 				int count = 0;
