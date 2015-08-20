@@ -77,7 +77,7 @@ public class DeleteInternalGappy extends DNADataAlterer {
 		}
 		UndoInstructions undoInstructions = null;
 		if (undoReference!=null)
-			undoInstructions =data.getUndoInstructionsAllData();
+			undoInstructions =data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_DELETED});
 		boolean noColumnsSelected =  !((table != null && table.anyColumnSelected()) || data.anySelected());
 
 		deleteGappy(false,  noColumnsSelected,  data,  table); 

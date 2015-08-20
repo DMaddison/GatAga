@@ -26,7 +26,7 @@ public class TrimToReferenceSequence extends MolecularDataAlterer {
 		}
 		MolecularData data = (MolecularData)dData;
 
-		UndoInstructions undoInstructions = data.getUndoInstructionsAllData();
+		UndoInstructions undoInstructions = data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_DELETED});
 		boolean changed = false;
 		
 		int startReference = data.firstApplicable(referenceSequence-1);

@@ -27,7 +27,7 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 		}
 		MolecularData data = (MolecularData)dData;
 
-		UndoInstructions undoInstructions = data.getUndoInstructionsAllData();
+		UndoInstructions undoInstructions = data.getUndoInstructionsAllMatrixCells(null);
 		boolean changed = false;
 		
 		

@@ -79,7 +79,7 @@ public class SetCodonPositions extends DNADataAlterer {
 				return false;
 
 		}
-		UndoInstructions undoInstructions = data.getUndoInstructionsAllData();
+		UndoInstructions undoInstructions = data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_SPECSETS_CHANGED});
 		boolean noColumnsSelected =  !((table != null && table.anyColumnSelected()) || data.anySelected());
 
 		if (startingPos < 3)
