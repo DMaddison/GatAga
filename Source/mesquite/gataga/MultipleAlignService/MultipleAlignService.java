@@ -15,7 +15,7 @@ import mesquite.align.lib.*;
 
 
 /* ======================================================================== */
-public class MultipleAlignService extends CategDataAlterer {
+public class MultipleAlignService extends CategDataAlterer  implements AltererAlignShift{
 	MultipleSequenceAligner aligner;
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {

@@ -5,7 +5,7 @@ import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.table.*;
 
-public class TrimToReferenceSequence extends MolecularDataAlterer {
+public class TrimToReferenceSequence extends MolecularDataAlterer implements AltererSimpleCell {
 	
 	int referenceSequence = 1;
 

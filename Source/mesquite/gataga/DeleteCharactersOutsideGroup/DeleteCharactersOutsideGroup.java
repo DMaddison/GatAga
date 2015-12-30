@@ -23,7 +23,7 @@ import mesquite.categ.lib.*;
 import mesquite.lib.table.*;
 
 /* ======================================================================== */
-public class DeleteCharactersOutsideGroup extends DataAlterer {
+public class DeleteCharactersOutsideGroup extends DataAlterer implements AltererWholeCharacterAddRemove {
 	MesquiteTable table;
 	CharacterData data;
 	/*.................................................................................................................*/
