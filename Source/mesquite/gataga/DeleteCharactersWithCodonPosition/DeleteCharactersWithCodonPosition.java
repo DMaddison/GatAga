@@ -54,7 +54,7 @@ public class DeleteCharactersWithCodonPosition extends DNADataAlterer  implement
 		}
 		UndoInstructions undoInstructions = null;
 		if (undoReference!=null)
-			undoInstructions =data.getUndoInstructionsAllData();
+			undoInstructions =data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_DELETED});
 		CodonPositionsSet codPosSet = (CodonPositionsSet)data.getCurrentSpecsSet(CodonPositionsSet.class);
 		if (codPosSet == null)
 			return false;

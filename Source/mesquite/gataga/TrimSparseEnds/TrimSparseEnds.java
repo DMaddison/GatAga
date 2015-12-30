@@ -51,7 +51,7 @@ public class TrimSparseEnds extends DNADataAlterer implements AltererWholeCharac
 		
 		if (threshold > data.getNumTaxa())
 			threshold = data.getNumTaxa();
-		UndoInstructions undoInstructions = data.getUndoInstructionsAllData();
+		UndoInstructions undoInstructions = data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_DELETED});
 		boolean changed = false;
 		boolean passed = false;
 		int deleteUntil = -1;

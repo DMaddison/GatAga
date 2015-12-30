@@ -204,8 +204,8 @@ public class ImportCDSAnnotation extends DNADataAlterer implements ActionListene
 				return false;
 
 		}
-		UndoInstructions undoInstructions = data.getUndoInstructionsAllData();
-		
+		UndoInstructions undoInstructions = data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_DELETED, UndoInstructions.CHAR_SPECSETS_CHANGED});
+
 		if (annotations == null)
 			annotations = MesquiteFile.getTabDelimitedTextFile(annotationPath, false);
 		int refTaxon = taxa.whichTaxonNumber(referenceTaxon);

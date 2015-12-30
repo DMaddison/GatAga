@@ -55,7 +55,7 @@ public class DeleteCharactersInGroup extends DataAlterer {
 		}
 		UndoInstructions undoInstructions = null;
 		if (undoReference!=null)
-			undoInstructions =data.getUndoInstructionsAllData();
+			undoInstructions =data.getUndoInstructionsAllMatrixCells(new int[] {UndoInstructions.CHAR_DELETED});
 		CharacterPartition partition = (CharacterPartition)data.getCurrentSpecsSet(CharacterPartition.class);
 		if (partition == null)
 			return false;
