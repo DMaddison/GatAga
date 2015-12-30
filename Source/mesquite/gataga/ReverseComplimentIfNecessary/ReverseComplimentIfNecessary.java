@@ -4,6 +4,7 @@ import java.util.*;
 import java.lang.*;
 import java.awt.*;
 import java.awt.image.*;
+
 import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
@@ -14,7 +15,7 @@ import mesquite.align.lib.*;
 
 
 /* ======================================================================== */
-public class ReverseComplimentIfNecessary extends CategDataAlterer {
+public class ReverseComplimentIfNecessary extends CategDataAlterer  implements AltererAlignShift{
 	
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {

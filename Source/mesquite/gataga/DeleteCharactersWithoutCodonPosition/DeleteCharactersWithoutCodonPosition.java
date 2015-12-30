@@ -21,7 +21,7 @@ import mesquite.categ.lib.*;
 import mesquite.lib.table.*;
 
 /* ======================================================================== */
-public class DeleteCharactersWithoutCodonPosition extends DNADataAlterer {
+public class DeleteCharactersWithoutCodonPosition extends DNADataAlterer  implements AltererWholeCharacterAddRemove {
 	MesquiteTable table;
 	CharacterData data;
 	/*.................................................................................................................*/

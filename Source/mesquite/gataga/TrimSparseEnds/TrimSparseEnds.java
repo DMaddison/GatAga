@@ -18,7 +18,7 @@ import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.table.*;
 
-public class TrimSparseEnds extends DNADataAlterer {
+public class TrimSparseEnds extends DNADataAlterer implements AltererWholeCharacterAddRemove  {
 
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {

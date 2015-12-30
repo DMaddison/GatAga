@@ -96,10 +96,14 @@ public class MultipleAlignService extends CategDataAlterer {
       	public int getVersionOfFirstRelease(){
       		return -100;  
     }
-	/*.................................................................................................................*/
-    	 public String getName() {
+    	/*.................................................................................................................*/
+   	 public String getName() {
 		return "Align Sequences in Matrix";
-   	 }
+  	 }
+ 	/*.................................................................................................................*/
+	 public String getNameForMenuItem() {
+	return "Align Sequences in Matrix...";
+	 }
 	/*.................................................................................................................*/
  	/** returns an explanation of what the module does.*/
  	public String getExplanation() {

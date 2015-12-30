@@ -25,7 +25,7 @@ import mesquite.lib.table.*;
 import mesquite.lists.lib.ListModule;
 
 /* ======================================================================== */
-public class DeleteInternalGappy extends DNADataAlterer {
+public class DeleteInternalGappy extends DNADataAlterer  implements AltererWholeCharacterAddRemove {
 	MesquiteTable table;
 	CharacterData data;
 	/*.................................................................................................................*/
