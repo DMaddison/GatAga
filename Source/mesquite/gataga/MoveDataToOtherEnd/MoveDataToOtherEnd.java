@@ -28,7 +28,7 @@ import mesquite.lib.table.*;
 
 
 /* ======================================================================== */
-public class MoveDataToOtherEnd extends MolecularDataAlterer  {
+public class MoveDataToOtherEnd extends MolecularDataAlterer implements AltererAlignShift  {
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		return true;
@@ -47,8 +47,8 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer  {
 		MolecularData data = (MolecularData)cData;
 
 		MesquiteInteger row= new MesquiteInteger();
-		MesquiteInteger firstColumn= new MesquiteInteger(0);
-		MesquiteInteger lastColumn= new MesquiteInteger(0);
+		MesquiteInteger firstColumn= new MesquiteInteger();
+		MesquiteInteger lastColumn= new MesquiteInteger();
 		boolean dataChanged = false;
 		MesquiteInteger charAdded = new MesquiteInteger();
 		MesquiteInteger distanceMoved = new MesquiteInteger();
@@ -108,7 +108,7 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer  {
 					dataChanged=true;
 				} else  {
 					if (!warned)
-						MesquiteMessage.discreetNotifyUser("Your selection needs to include either the first character or last character (but not both!)");
+						MesquiteMessage.discreetNotifyUser("Your selection needs to include either the first character or last character (but not both!). [Character range selected = " + (icStart+1) + " to " + (icEnd+1) + ", taxon "+ (it+1) + ".]");
 					warned=true;
 				}
 			}
