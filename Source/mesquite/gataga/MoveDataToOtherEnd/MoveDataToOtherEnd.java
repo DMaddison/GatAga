@@ -53,11 +53,13 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer  {
 		MesquiteInteger charAdded = new MesquiteInteger();
 		MesquiteInteger distanceMoved = new MesquiteInteger();
 		boolean warned=false;
+		MesquiteBoolean warnCheckSum = new MesquiteBoolean(true);
 
 
 		if (table.anythingSelected()){
 			while (table.nextSingleRowBlockSelected(row,firstColumn,lastColumn)) {
 				int it = row.getValue();
+				int[] startingFreqArray = ((CategoricalData)data).getStateFrequencyArrayOfTaxon(it)	;
 				int icStart = firstColumn.getValue();
 				int icEnd = lastColumn.getValue();
 				int shiftAmount=0;
@@ -88,6 +90,9 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer  {
 						data.addCharacters(data.getNumChars(), charactersNeeded, true);
 					}
 					data.moveDataBlock(firstData,  icEnd, lastData+1, it, it, false, true);
+					int[] freqArray = ((CategoricalData)data).getStateFrequencyArrayOfTaxon(it);
+					if (!data.stateFrequencyArraysEqual(startingFreqArray, freqArray)) {
+						MesquiteMessage.discreetNotifyUser("State frequencies within taxon " + it + " changed!");					}
 					dataChanged=true;
 				} else if (icEnd==data.getNumChars()-1) {  // then we are at the end
 					int charactersNeeded = (lastDataSelected-firstDataSelected +1) - (firstData);
@@ -97,6 +102,9 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer  {
 						lastData+= charactersNeeded;
 					}
 					data.moveDataBlock(icStart, lastData,firstData-(lastDataSelected-firstDataSelected +1)+charactersNeeded, it, it, false, true);
+					int[] freqArray = ((CategoricalData)data).getStateFrequencyArrayOfTaxon(it);
+					if (!data.stateFrequencyArraysEqual(startingFreqArray, freqArray)) {
+						MesquiteMessage.discreetNotifyUser("State frequencies within taxon " + it + " changed!");					}
 					dataChanged=true;
 				} else  {
 					if (!warned)
