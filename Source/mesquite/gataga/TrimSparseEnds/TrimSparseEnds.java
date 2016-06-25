@@ -18,7 +18,7 @@ import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.table.*;
 
-public class TrimSparseEnds extends DNADataAlterer implements AltererWholeCharacterAddRemove  {
+public class TrimSparseEnds extends MolecularDataAlterer implements AltererWholeCharacterAddRemove  {
 
 	/*.................................................................................................................*/
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
@@ -31,8 +31,8 @@ public class TrimSparseEnds extends DNADataAlterer implements AltererWholeCharac
 		if (dData==null)
 			return false;
 
-		if (!(dData instanceof DNAData)){
-			MesquiteMessage.warnProgrammer(getName() + " requires DNA data");
+		if (!(dData instanceof MolecularData)){
+			MesquiteMessage.warnProgrammer(getName() + " requires molecular data");
 			return false;
 		}
 		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
@@ -44,7 +44,7 @@ public class TrimSparseEnds extends DNADataAlterer implements AltererWholeCharac
 				return false;
 			
 		}
-		DNAData data = (DNAData)dData;
+		MolecularData data = (MolecularData)dData;
 		int threshold = 0;
 		if (percentage>0)
 			threshold = (int)(((percentage-0.000001)/100.00)*data.getNumTaxa()) + 1;  
