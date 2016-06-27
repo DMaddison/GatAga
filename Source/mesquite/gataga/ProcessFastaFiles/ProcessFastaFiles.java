@@ -12,22 +12,9 @@ GNU Lesser General Public License.  (http://www.gnu.org/copyleft/lesser.html)
 
 package mesquite.gataga.ProcessFastaFiles; 
 
-import java.io.*;
-import java.util.Vector;
-
-import org.apache.commons.lang.SystemUtils;
 
 import mesquite.lib.*;
-import mesquite.io.lib.*;
-import mesquite.lib.characters.CharacterData;
-import mesquite.lib.characters.CodonPositionsSet;
-import mesquite.lib.duties.*;
-import mesquite.lib.system.SystemUtil;
-import mesquite.lists.lib.ListModule;
-import mesquite.basic.ManageSetsBlock.ManageSetsBlock;
-import mesquite.categ.lib.*;
-import mesquite.charMatrices.ManageCodonsBlock.ManageCodonsBlock;
-import mesquite.gataga.lib.*;
+import mesquite.dmanager.lib.*;
 
 
 /* ======================================================================== */
