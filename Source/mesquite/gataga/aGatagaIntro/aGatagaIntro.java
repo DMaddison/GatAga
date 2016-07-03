@@ -53,12 +53,12 @@ public class aGatagaIntro extends PackageIntro {
 	}
 	/*.................................................................................................................*/
 	public String getPackageDateReleased(){
-		return "23 April 2016";
+		return "3 July 2016";
 	}
 	/*.................................................................................................................*/
 	/** Returns build number for a package of modules as an integer*/
 	public int getPackageBuildNumber(){
-		return 13;
+		return 14;
 	}
 	/*  Release dates:
 	 * */
