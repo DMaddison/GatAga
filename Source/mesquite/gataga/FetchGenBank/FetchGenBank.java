@@ -3,6 +3,7 @@ package mesquite.gataga.FetchGenBank;
 
 
 import java.awt.*;
+import java.awt.event.*;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,15 +15,15 @@ import mesquite.molec.lib.*;
 import org.dom4j.*;
 
 /* ======================================================================== */
-public class FetchGenBank extends UtilitiesAssistant { 
+public class FetchGenBank extends UtilitiesAssistant implements ActionListener { 
 	String genBankNumbers;
 	String[] originalGeneNames = null;
 	String[] standardizedGeneNames = null;
 	String[] fragmentNames = null;
 	String currentFragmentName = "";
-	String translationTable="";
+	String translationTablePath="";
 	boolean isDNA = true;
-	
+
 	MesquiteBoolean saveAsFasta = new MesquiteBoolean(true);
 	MesquiteBoolean saveAsXML = new MesquiteBoolean(true);
 	MesquiteBoolean includeTaxonNameIntoFASTAFile = new MesquiteBoolean(true);
@@ -30,6 +31,7 @@ public class FetchGenBank extends UtilitiesAssistant {
 	MesquiteBoolean includeGeneInfoIntoFASTAFile = new MesquiteBoolean(false);
 	String publicationCode ="PUB001";
 	String voucherCodePrefix="";
+
 
 	boolean lastTokenForVoucherCode = true;
 
@@ -60,6 +62,7 @@ public class FetchGenBank extends UtilitiesAssistant {
 	public boolean isPrerelease(){
 		return true;
 	}
+
 	/*.................................................................................................................*/
 	public void processSingleXMLPreference (String tag, String content) {
 		if ("voucherCodePrefix".equalsIgnoreCase(tag))
@@ -74,6 +77,9 @@ public class FetchGenBank extends UtilitiesAssistant {
 			includeGeneInfoIntoFASTAFile.setValue(MesquiteBoolean.fromTrueFalseString(content));
 		if ("includeVoucherCodeIntoFASTAFile".equalsIgnoreCase(tag))
 			includeVoucherCodeIntoFASTAFile.setValue(MesquiteBoolean.fromTrueFalseString(content));
+		if ("translationTablePath".equalsIgnoreCase(tag)){   
+			translationTablePath = StringUtil.cleanXMLEscapeCharacters(content);
+		}
 	}
 	/*.................................................................................................................*/
 	public String preparePreferencesForXML () {
@@ -84,10 +90,49 @@ public class FetchGenBank extends UtilitiesAssistant {
 		StringUtil.appendXMLTag(buffer, 2, "includeGeneInfoIntoFASTAfile",includeGeneInfoIntoFASTAFile);
 		StringUtil.appendXMLTag(buffer, 2, "includeVoucherCodeIntoFASTAFile",includeVoucherCodeIntoFASTAFile);
 		StringUtil.appendXMLTag(buffer, 2, "includeTaxonNameIntoFASTAFile",includeTaxonNameIntoFASTAFile);
-		
+		StringUtil.appendXMLTag(buffer, 2, "translationTablePath", translationTablePath);  
+
 		return buffer.toString();
 	}
 
+	/*.................................................................................................................*/
+	public boolean processTranslationFile(){
+		if (StringUtil.notEmpty(translationTablePath)) {
+			String contents = MesquiteFile.getFileContentsAsString(translationTablePath);
+			Parser parser = new Parser(contents);
+			String line = parser.getRawNextDarkLine();  // get title line
+			line = parser.getRawNextDarkLine();  // get first real line
+			int count = 0;
+			while (StringUtil.notEmpty(line)) {
+				count++;
+				line = parser.getRawNextDarkLine();  // get first real line
+			}
+			if (count>0) {
+				originalGeneNames = new String[count];
+				standardizedGeneNames = new String[count];
+				fragmentNames = new String[count];
+				parser.setPosition(0);
+				line = parser.getRawNextDarkLine();  // get title line
+				line = parser.getRawNextDarkLine();  // get first real line
+				count=0;
+				while (StringUtil.notEmpty(line) && count<originalGeneNames.length) {
+					Parser subParser = new Parser(line);
+					subParser.setWhitespaceString("\t");
+					originalGeneNames[count] = subParser.getFirstToken();
+					standardizedGeneNames[count] = subParser.getNextToken();
+					fragmentNames[count] = subParser.getNextToken();
+					count++;
+					line = parser.getRawNextDarkLine();  // get first real line
+				}
+				return true;
+
+			}
+		}
+		return false;
+	}
+
+
+	SingleLineTextField translationTablePathField =  null;
 
 	/*.................................................................................................................*/
 	public boolean queryOptions() {
@@ -103,6 +148,10 @@ public class FetchGenBank extends UtilitiesAssistant {
 		Checkbox includeGeneInfoCheckbox = dialog.addCheckBox("include gene information in FASTA file",includeGeneInfoIntoFASTAFile.getValue());
 		SingleLineTextField voucherCodePrefixField = dialog.addTextField("Voucher code prefix",voucherCodePrefix, 40);
 		SingleLineTextField publicationCodeField = dialog.addTextField("Publication code",publicationCode, 40);
+
+		translationTablePathField = dialog.addTextField("Path to translation table:", translationTablePath, 40);
+		Button browseButton = dialog.addAListenedButton("Browse...",null, this);
+		browseButton.setActionCommand("browse");
 
 
 		dialog.completeAndShowDialog(true);
@@ -124,11 +173,23 @@ public class FetchGenBank extends UtilitiesAssistant {
 			includeGeneInfoIntoFASTAFile.setValue(includeGeneInfoCheckbox.getState());
 			publicationCode= publicationCodeField.getText();
 			voucherCodePrefix = voucherCodePrefixField.getText();
+			translationTablePath = translationTablePathField.getText();
 			storePreferences();
 		}
 		dialog.dispose();
 		return (buttonPressed.getValue()==0);
 	}
+	/*.................................................................................................................*/
+	public  void actionPerformed(ActionEvent e) {
+		if (e.getActionCommand().equalsIgnoreCase("browse")) {
+			MesquiteString directoryName = new MesquiteString();
+			MesquiteString fileName = new MesquiteString();
+			String path = MesquiteFile.openFileDialog("Choose translation table path", directoryName, fileName);
+			if (StringUtil.notEmpty(path))
+				translationTablePathField.setText(path);
+		}
+	}
+
 	/*.................................................................................................................*/
 	String getVoucherInfo(Element featureTableElement) {
 		List featureElements = featureTableElement.elements();
@@ -140,6 +201,21 @@ public class FetchGenBank extends UtilitiesAssistant {
 				Element qualifierElement = (Element) iter2.next();
 				Element gbQualifierName = qualifierElement.element("GBQualifier_name");
 				if ("specimen_voucher".equalsIgnoreCase(gbQualifierName.getText())) {
+					Element gbQualifierValue = qualifierElement.element("GBQualifier_value");
+					return gbQualifierValue.getText();
+
+				}
+			}
+		}
+		featureElements = featureTableElement.elements();
+		for (Iterator iter = featureElements.iterator(); iter.hasNext();) {   // this is going through all of the notices
+			Element featureElement = (Element) iter.next();
+			Element gbFeatureQualElement = featureElement.element("GBFeature_quals");
+			List qualifierElements = gbFeatureQualElement.elements();
+			for (Iterator iter2 = qualifierElements.iterator(); iter2.hasNext();) {   // this is going through all of the notices
+				Element qualifierElement = (Element) iter2.next();
+				Element gbQualifierName = qualifierElement.element("GBQualifier_name");
+				if ("bio_material".equalsIgnoreCase(gbQualifierName.getText())) {
 					Element gbQualifierValue = qualifierElement.element("GBQualifier_value");
 					return gbQualifierValue.getText();
 
@@ -229,10 +305,7 @@ public class FetchGenBank extends UtilitiesAssistant {
 				return false;
 			if (!directory.endsWith(MesquiteFile.fileSeparator))
 				directory+=MesquiteFile.fileSeparator;
-			originalGeneNames = new String[]{"28S", "large subunit", "18S", "small subunit", "cytochrome oxidase", "COI", "Arginine", "carbomyl", "CAD", "wingless", "topoisomerase", "muscle", "MSP", "polymerase", "spectrin"};
-			standardizedGeneNames = new String[]{"28S", "28S", "18S", "18S", "COI", "COI", "ArgK", "CAD", "CAD", "wg", "Topo", "MSP", "MSP", "Pol2", "AS"};
-			fragmentNames = new String[]{"", "", "", "", "COIBC", "COIBC", "", "CAD4","CAD4", "", "", "", "","", ""};
-
+			processTranslationFile();
 
 			String[] accessionNumbers = StringUtil.delimitedTokensToStrings(genBankNumbers,',',true);
 			for (int i=0; i<accessionNumbers.length; i++) 
