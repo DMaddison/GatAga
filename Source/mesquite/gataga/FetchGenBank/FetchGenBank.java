@@ -314,8 +314,10 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 
 			logln("Querying for IDs of entries.");
 			String[] idList = NCBIUtil.getGenBankIDs(accessionNumbers, isDNA,  this, true);
-			if (idList==null)
+			if (idList==null || idList.length==0 || StringArray.allBlank(idList)){
+				logln("\nGenBank IDs could not be acquired");
 				return false;
+			}
 			logln("\nIDs acquired.");
 			/*for (int i=0; i<idList.length; i++) 
 						if (!StringUtil.blank(idList[i])) 				
@@ -396,7 +398,7 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 
 
 		} catch ( Exception e ){
-			// better warning
+			logln("Could not fetch GenBank sequences: " + e.getMessage());
 			return false;
 		}
 	}
