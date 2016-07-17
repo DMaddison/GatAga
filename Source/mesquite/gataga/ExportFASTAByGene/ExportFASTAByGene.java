@@ -66,9 +66,10 @@ public class ExportFASTAByGene extends FileInterpreterI {
 		ExporterDialog exportDialog = new ExporterDialog(this,containerOfModule(), "Export FASTA files by gene", buttonPressed);
 		exportDialog.setSuppressLineEndQuery(false);
 		exportDialog.setDefaultButton(null);
-		exportDialog.appendToHelpString("Fusing matrices into multiple FASTA files, and exporting one matrix, then the next, and so on.");
+		exportDialog.appendToHelpString("Exporting matrices into multiple FASTA files, by exporting one matrix, then the next, and so on.");
 		exportDialog.addHorizontalLine(1);
 		Checkbox removeExcludedBox = exportDialog.addCheckBox("Remove excluded characters", removeExcluded);
+		Checkbox includeGapsBox = exportDialog.addCheckBox("include gaps", includeGaps);
 		//		Checkbox convertToMissing = exportDialog.addCheckBox("convert partial ambiguities to missing", convertAmbiguities);
 
 		exportDialog.completeAndShowDialog(false, taxaSelected);
@@ -76,7 +77,10 @@ public class ExportFASTAByGene extends FileInterpreterI {
 		boolean ok = (exportDialog.query(false, taxaSelected)==0);
 
 		//		convertAmbiguities = convertToMissing.getState();
-		removeExcluded = removeExcludedBox.getState();
+		if (ok) {
+			removeExcluded = removeExcludedBox.getState();
+			includeGaps = includeGapsBox.getState();
+		}
 
 		exportDialog.dispose();
 		lineEnding = getLineEnding();
@@ -240,7 +244,7 @@ public class ExportFASTAByGene extends FileInterpreterI {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Export FASTA by Gene";
+		return "Export FASTA by Gene All Matrices";
 	}
 	/*.................................................................................................................*/
 
