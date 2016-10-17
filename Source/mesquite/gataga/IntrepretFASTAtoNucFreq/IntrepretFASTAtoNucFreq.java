@@ -585,7 +585,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 					BLASTResults blastResult = new BLASTResults(maxHits);
 
 
-					blasterTask.basicDNABlastForMatches(blastOption, sequenceName, sequence.toString(), maxHits, eValueCutoff, wordSize, response, taxonNumber==1);
+					blasterTask.basicDNABlastForMatches(blasterTask.getDatabase(0), blastOption, sequenceName, sequence.toString(), maxHits, eValueCutoff, wordSize, response, taxonNumber==1);
 					someBlastsDone = true;
 					blastResult.processResultsFromBLAST(response.toString(), false, eValueCutoff);
 					blasterTask.postProcessingCleanup(blastResult);
@@ -623,7 +623,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 								// IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
 							}
 
-							String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults);
+							String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults, 0);  // TODO : support multiple blast databases
 							if (StringUtil.notEmpty(fasta)) {	
 								//Debugg.println(blastResult.reversedToString());
 								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");
