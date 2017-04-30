@@ -30,9 +30,10 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	FileInterpreter exporterTask;
 	
 	int windowSize = 100;
-	boolean getNthLongestDistance = true;
+	boolean useMaximumDistance = true;
 	double distanceThreshold = 0.0;
-	int nthDistance = 1;
+	int minimumNumberOfSequences = 4;
+//	int nthDistance = 1;
 
 	
 	/*.................................................................................................................*/
@@ -122,9 +123,10 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		dialog.suppressNewPanel();
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
-		DoubleField distanceThresholdField = dialog.addDoubleField("Maximum distance", distanceThreshold, 12, 0.0, MesquiteDouble.infinite);
-		Checkbox getNthLongestDistanceField = dialog.addCheckBox("use nth distance" , getNthLongestDistance);
-		IntegerField nthDistanceField = dialog.addIntegerField("nth distance", nthDistance, 12, 1, MesquiteInteger.infinite);
+		DoubleField distanceThresholdField = dialog.addDoubleField("Distance threshold", distanceThreshold, 12, 0.0, MesquiteDouble.infinite);
+		Checkbox getMaximumDistanceCheckbox = dialog.addCheckBox("Use maximum (as opposed to average) distance" , useMaximumDistance);
+		//IntegerField nthDistanceField = dialog.addIntegerField("nth distance", nthDistance, 12, 1, MesquiteInteger.infinite);
+		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
 
 		MesquiteModule[] fInterpreters = getFileCoordinator().getImmediateEmployeesWithDuty(FileInterpreterI.class);
 		int count=1;
@@ -148,8 +150,9 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		if (buttonPressed.getValue()==0)  {
 			windowSize = windowSizeField.getValue();
 			distanceThreshold = distanceThresholdField.getValue();
-			nthDistance = nthDistanceField.getValue();
-			getNthLongestDistance=getNthLongestDistanceField.getState();
+			//nthDistance = nthDistanceField.getValue();
+			useMaximumDistance=getMaximumDistanceCheckbox.getState();
+			minimumNumberOfSequences=minimumNumberSeqField.getValue();
 			exporterString = exporterChoice.getSelectedItem();
 		}
 
@@ -205,14 +208,28 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	}
 
 	/*.................................................................................................................*/
+	boolean acceptableRepresentation (CategoricalData data, int icStart, int icEnd) {
+		int width = icEnd-icStart+1;
+		int count = 0;
+		for (int it=0; it<data.getNumTaxa(); it++) {
+			int num = data.getNumberApplicableInTaxon(it, icStart, icEnd, false);
+			if (num==width)
+				count++;
+		}
+		return count>=minimumNumberOfSequences;
+	}
+
+	/*.................................................................................................................*/
 	boolean windowMeetsCriterion(CategoricalData data, int icStart, int icEnd) {
 		
+		if (!acceptableRepresentation(data,icStart, icEnd))
+			return false;
 		includeOnlyWindow(data,icStart,icEnd);
 		observedStates = data.getMCharactersDistribution();
 		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
 		double distance = 0.0;
-		if (getNthLongestDistance) {
-			distance = pDistance.getNthLongestDistance(nthDistance);
+		if (useMaximumDistance) {
+			distance = pDistance.getMaximumDistance();
 		} else {
 			distance = pDistance.getAverageDistance();
 		}
