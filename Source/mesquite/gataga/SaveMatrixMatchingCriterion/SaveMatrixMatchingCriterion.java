@@ -30,10 +30,23 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	FileInterpreter exporterTask;
 	
 	int windowSize = 100;
-	boolean useMaximumDistance = true;
-	double distanceThreshold = 0.0;
+	
+	static final int MINDISTANCE=0;
+	static final int MAXDISTANCE=0;
+	static final int NTHDISTANCE=1;
+	static final int AVGDISTANCE=2;
+	int maxDistanceCriterion = MAXDISTANCE;
+	int minDistanceCriterion = MINDISTANCE;
+	
+//	boolean useMaximumDistance = true;
+	double maxDistanceThreshold = 1.0;
+	double minDistanceThreshold = 0.0;
 	int minimumNumberOfSequences = 4;
-//	int nthDistance = 1;
+	int nthDistance = 1;
+	
+	boolean writeOnlyWindow = false;
+	boolean sequesterMatchedFiles = false;
+	
 
 	
 	/*.................................................................................................................*/
@@ -116,16 +129,21 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		getProject().incrementProjectWindowSuppression();
 
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog dialog =  new ExtensibleDialog(containerOfModule(), "Export Matrices Matching Criterion", buttonPressed);
-		String message = "This will export matrices to separate files";
+		ExtensibleDialog dialog =  new ExtensibleDialog(containerOfModule(), "Export Matrices Matching Criteria", buttonPressed);
+		String message = "This will examine each file and export those that match the specified distance criteria.";
 		dialog.addLargeTextLabel(message);
 		dialog.addBlankLine();
 		dialog.suppressNewPanel();
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
-		DoubleField distanceThresholdField = dialog.addDoubleField("Distance threshold", distanceThreshold, 12, 0.0, MesquiteDouble.infinite);
-		Checkbox getMaximumDistanceCheckbox = dialog.addCheckBox("Use maximum (as opposed to average) distance" , useMaximumDistance);
-		//IntegerField nthDistanceField = dialog.addIntegerField("nth distance", nthDistance, 12, 1, MesquiteInteger.infinite);
+		DoubleField maxDistanceThresholdField = dialog.addDoubleField("Maximum distance threshold", maxDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
+		dialog.addLabel("Distance to examine:", Label.CENTER);
+		RadioButtons maxDistanceCriterionRB = dialog.addRadioButtons(new String[] {"largest distance", "nth largest distance", "average distance"}, maxDistanceCriterion);
+		DoubleField minDistanceThresholdField = dialog.addDoubleField("Minimum distance threshold", minDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
+		dialog.addLabel("Distance to examine:", Label.CENTER);
+		RadioButtons minDistanceCriterionRB = dialog.addRadioButtons(new String[] {"smallest distance", "nth smallest distance", "average distance"}, maxDistanceCriterion);
+	//	Checkbox getMaximumDistanceCheckbox = dialog.addCheckBox("Use maximum (as opposed to average) distance" , useMaximumDistance);
+		IntegerField nthDistanceField = dialog.addIntegerField("value of n for nth distance calculation", nthDistance, 12, 1, MesquiteInteger.infinite);
 		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
 
 		MesquiteModule[] fInterpreters = getFileCoordinator().getImmediateEmployeesWithDuty(FileInterpreterI.class);
@@ -145,15 +163,23 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 
 		Choice exporterChoice = dialog.addPopUpMenu ("File Format", exporterNames, 0);
 		exporterChoice.select(exporterString);
+		Checkbox writeOnlyWindowCheckbox = dialog.addCheckBox("export only the matching window of data" , writeOnlyWindow);
+		Checkbox sequesterMatchedFilesCheckbox = dialog.addCheckBox("sequester original files that matched criteria" , sequesterMatchedFiles);
+
 		dialog.addBlankLine();
 		dialog.completeAndShowDialog(true);
 		if (buttonPressed.getValue()==0)  {
 			windowSize = windowSizeField.getValue();
-			distanceThreshold = distanceThresholdField.getValue();
-			//nthDistance = nthDistanceField.getValue();
-			useMaximumDistance=getMaximumDistanceCheckbox.getState();
+			maxDistanceThreshold = maxDistanceThresholdField.getValue();
+			maxDistanceCriterion = maxDistanceCriterionRB.getValue();
+			minDistanceThreshold = minDistanceThresholdField.getValue();
+			minDistanceCriterion = minDistanceCriterionRB.getValue();
+			nthDistance = nthDistanceField.getValue();
+	//		useMaximumDistance=getMaximumDistanceCheckbox.getState();
 			minimumNumberOfSequences=minimumNumberSeqField.getValue();
 			exporterString = exporterChoice.getSelectedItem();
+			writeOnlyWindow = writeOnlyWindowCheckbox.getState();
+			sequesterMatchedFiles = sequesterMatchedFilesCheckbox.getState();
 		}
 
 		
@@ -227,13 +253,32 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		includeOnlyWindow(data,icStart,icEnd);
 		observedStates = data.getMCharactersDistribution();
 		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
-		double distance = 0.0;
-		if (useMaximumDistance) {
-			distance = pDistance.getMaximumDistance();
-		} else {
-			distance = pDistance.getAverageDistance();
+		double maxDistance = 0.0;
+		switch (maxDistanceCriterion) {
+		case MAXDISTANCE:
+			maxDistance = pDistance.getMaximumDistance();
+			break;
+		case NTHDISTANCE:
+			maxDistance = pDistance.getNthDistance(nthDistance, true);
+			break;
+		case AVGDISTANCE:
+			maxDistance = pDistance.getAverageDistance();
+			break;
 		}
-		return distance<=distanceThreshold;
+		double minDistance = 0.0;
+		switch (minDistanceCriterion) {
+		case MINDISTANCE:
+			minDistance = pDistance.getMaximumDistance();
+			break;
+		case NTHDISTANCE:
+			minDistance = pDistance.getNthDistance(nthDistance, false);
+			break;
+		case AVGDISTANCE:
+			minDistance = pDistance.getAverageDistance();
+			break;
+		}
+		//Debugg.println("DISTANCE: " + distance);
+		return minDistance>=minDistanceThreshold && maxDistance<=maxDistanceThreshold;
 	}
 
 	/*.................................................................................................................*/
@@ -251,7 +296,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean processFile(MesquiteFile file){
+	public boolean processFile(MesquiteFile file, MesquiteString result){
 		boolean usePrevious = false;
 		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
 			if (!queryOptions())
@@ -292,10 +337,14 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 						path = path + (im + 1);
 						fileName = fileName + (im + 1);
 					}
+					fileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+fileName, exporterTask.getStandardFileExtensionForExport());
+					fileName = MesquiteFile.getFileNameFromFilePath(fileName);
+
 
 					path = path + "." + exporterTask.preferredDataFileExtension(); 
-					if (!StringUtil.blank(exporterTask.preferredDataFileExtension()) && !fileName.endsWith(exporterTask.preferredDataFileExtension()))
+					if (!StringUtil.blank(exporterTask.preferredDataFileExtension()) && !fileName.endsWith(exporterTask.preferredDataFileExtension())){
 						fileName = fileName + "." + exporterTask.preferredDataFileExtension();
+					}
 					MesquiteFile tempDataFile = (MesquiteFile)coord.doCommand("newLinkedFile", StringUtil.tokenize(path), CommandChecker.defaultChecker); //TODO: never scripting???
 					TaxaManager taxaManager = (TaxaManager)findElementManager(Taxa.class);
 					Taxa newTaxa =taxa.cloneTaxa();
@@ -327,6 +376,10 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					newMatrix = null;
 					tempDataFile.close();
 					System.gc();
+					if (result!=null)
+						result.append("*");
+					if (sequesterMatchedFiles)
+						setPleaseSequester(true);
 				}
 			}
 		}
@@ -340,12 +393,15 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		return true;
 	}
 	public void saveFile(String exporterName, MesquiteFile file, String fileName, String directoryPath, FileCoordinator coord, boolean usePrevious){
-		if (exporterName.equals("NEXUS file"))
+		file.writeExcludedCharacters=!writeOnlyWindow;
+		if (exporterName.equals("NEXUS file")) {
 			coord.writeFile(file);
+		}
 		else if (exporterTask instanceof FileInterpreterI) {
 			String s = "file = " + StringUtil.tokenize(fileName) + " directory = " + StringUtil.tokenize(directoryPath) + " noTrees";
 			if (usePrevious)
 				s += " usePrevious";
+			((FileInterpreterI)exporterTask).writeExcludedCharacters = !writeOnlyWindow;
 			coord.export((FileInterpreterI)exporterTask, file, s);
 		}
 	}
@@ -353,19 +409,58 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Export Matrices Matching Criterion";
+		return "Export Matrices Matching Criteria";
+	}
+	/*.................................................................................................................*/
+	String distanceCriterionName(boolean max) {
+		if (max) {
+			switch (maxDistanceCriterion) {
+			case MAXDISTANCE:
+				return "largest distance";
+			case NTHDISTANCE:
+				return "nth largest distance";
+			case AVGDISTANCE:
+				return "average distance";
+			}
+		} else {
+			switch (minDistanceCriterion) {
+			case MINDISTANCE:
+				return "smallest distance";
+			case NTHDISTANCE:
+				return "nth smallest distance";
+			case AVGDISTANCE:
+				return "average distance";
+			}
+		}
+		return "";
 	}
 	/*.................................................................................................................*/
 	public String getNameAndParameters() {
+		StringBuffer sb = new StringBuffer();
 		if (exporterTask==null)
-			return "Export Matrices Matching Criterion";
+			sb.append("Export Matrices Matching Criteria");
 		else
-			return "Export Matrices Matching Criterion (" + exporterTask.getName() + ")";
+			sb.append("Export Matrices Matching Criteria (" + exporterTask.getName() + ")");
+		sb.append(StringUtil.lineEnding());
+		sb.append("  Criteria:" + StringUtil.lineEnding());
+		sb.append("    Window Size: " + windowSize+StringUtil.lineEnding());
+		sb.append("    Maximum Distance Threshold: " + maxDistanceThreshold+StringUtil.lineEnding());
+		sb.append("    Maximum Distance Criterion: " + distanceCriterionName(true)+StringUtil.lineEnding());
+		sb.append("    Minimum Distance Threshold: " + minDistanceThreshold+StringUtil.lineEnding());
+		sb.append("    Minimum Distance Criterion: " + distanceCriterionName(false)+StringUtil.lineEnding());
+		if (maxDistanceCriterion==NTHDISTANCE)
+			sb.append("    Value of n: " + nthDistance+StringUtil.lineEnding());
+		sb.append("    Minimum Number of Sequences: " + minimumNumberOfSequences+StringUtil.lineEnding());
+		if (writeOnlyWindow)
+			sb.append("    For each sequence write only the region in the matching window "+StringUtil.lineEnding());
+		else
+			sb.append("    Write entire sequences "+StringUtil.lineEnding());
+		return sb.toString();
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/
 	public String getExplanation() {
-		return "Manages file exporting modules to export all matrices in a file that match a criterion." ;
+		return "Manages file exporting modules to export all matrices in a file that match defined distance criteria." ;
 	}
 
 }
