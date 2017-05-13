@@ -44,7 +44,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	double fractionApplicable = 0.9;
 	int minimumNumberOfSequences = 4;
 	int nthDistance = 1;
-	
+	boolean verboseReport = false;
+
 	boolean writeOnlyWindow = false;
 	boolean sequesterMatchedFiles = false;
 	
@@ -167,6 +168,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		exporterChoice.select(exporterString);
 		Checkbox writeOnlyWindowCheckbox = dialog.addCheckBox("export only the matching window of data" , writeOnlyWindow);
 		Checkbox sequesterMatchedFilesCheckbox = dialog.addCheckBox("sequester original files that matched criteria" , sequesterMatchedFiles);
+		Checkbox verboseReportCheckbox = dialog.addCheckBox("verbose report" , verboseReport);
 
 		dialog.addBlankLine();
 		dialog.completeAndShowDialog(true);
@@ -182,6 +184,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			exporterString = exporterChoice.getSelectedItem();
 			writeOnlyWindow = writeOnlyWindowCheckbox.getState();
 			sequesterMatchedFiles = sequesterMatchedFilesCheckbox.getState();
+			verboseReport = verboseReportCheckbox.getState();
 			fractionApplicable = fractionApplicableField.getValue();
 		}
 
@@ -285,13 +288,16 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	}
 
 	/*.................................................................................................................*/
-	boolean meetsCriterion(CategoricalData data) {
-		if (data==null) 
+	boolean meetsCriterion(CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow, MesquiteString divergences) {
+		if (data==null || startWindow==null || endWindow==null) 
 			return false;
-		MesquiteInteger startWindow = new MesquiteInteger(-1);
-		MesquiteInteger endWindow = new MesquiteInteger(windowSize-2);
 		while (slideWindow(data,startWindow,endWindow,windowSize)) {
 			if (windowMeetsCriterion(data,startWindow.getValue(), endWindow.getValue())) {
+				if (verboseReport && divergences!=null) {
+					observedStates = data.getMCharactersDistribution();
+					PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
+					divergences.setValue(""+pDistance.getAverageDistance() + "\t"+pDistance.getOrderedDistanceString());
+				}
 				return true;
 			}
 		}
@@ -324,8 +330,11 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		for (int im = 0; im < numMatrices; im++){
 			if (proj.getCharacterMatrix(file, im) instanceof CategoricalData){
 				CategoricalData data = (CategoricalData)proj.getCharacterMatrix(file, im);
-				Debugg.println("file: " + file.getName());
-				if ((test == null || test.isCompatible(data.getStateClass(), getProject(), this)) && meetsCriterion(data)) {
+				logln("Processing file: " + file.getName());
+				MesquiteInteger startWindow = new MesquiteInteger(-1);
+				MesquiteInteger endWindow = new MesquiteInteger(windowSize-2);
+				MesquiteString divergences = new MesquiteString();
+				if ((test == null || test.isCompatible(data.getStateClass(), getProject(), this)) && meetsCriterion(data, startWindow, endWindow, divergences)) {
 					taxa = data.getTaxa();
 
 					String path = file.getPath();
@@ -379,8 +388,13 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					newMatrix = null;
 					tempDataFile.close();
 					System.gc();
-					if (result!=null)
+					if (result!=null) {
 						result.append("*");
+						if (verboseReport) {
+							result.append("\t"+(startWindow.getValue()+1) + "\t" + (endWindow.getValue()+1));
+							result.append("\t"+divergences.toString());
+						}
+					}
 					if (sequesterMatchedFiles)
 						setPleaseSequester(true);
 				}
