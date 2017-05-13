@@ -41,6 +41,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 //	boolean useMaximumDistance = true;
 	double maxDistanceThreshold = 1.0;
 	double minDistanceThreshold = 0.0;
+	double fractionApplicable = 0.9;
 	int minimumNumberOfSequences = 4;
 	int nthDistance = 1;
 	
@@ -145,6 +146,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	//	Checkbox getMaximumDistanceCheckbox = dialog.addCheckBox("Use maximum (as opposed to average) distance" , useMaximumDistance);
 		IntegerField nthDistanceField = dialog.addIntegerField("value of n for nth distance calculation", nthDistance, 12, 1, MesquiteInteger.infinite);
 		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
+		DoubleField fractionApplicableField = dialog.addDoubleField("Minimum fraction of data in the window for sequence", fractionApplicable, 12, 0.0, 1.0);
 
 		MesquiteModule[] fInterpreters = getFileCoordinator().getImmediateEmployeesWithDuty(FileInterpreterI.class);
 		int count=1;
@@ -180,6 +182,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			exporterString = exporterChoice.getSelectedItem();
 			writeOnlyWindow = writeOnlyWindowCheckbox.getState();
 			sequesterMatchedFiles = sequesterMatchedFilesCheckbox.getState();
+			fractionApplicable = fractionApplicableField.getValue();
 		}
 
 		
@@ -239,7 +242,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		int count = 0;
 		for (int it=0; it<data.getNumTaxa(); it++) {
 			int num = data.getNumberApplicableInTaxon(it, icStart, icEnd, false);
-			if (num==width)
+			if (1.0*num/width >= fractionApplicable)
 				count++;
 		}
 		return count>=minimumNumberOfSequences;
@@ -451,6 +454,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		if (maxDistanceCriterion==NTHDISTANCE)
 			sb.append("    Value of n: " + nthDistance+StringUtil.lineEnding());
 		sb.append("    Minimum Number of Sequences: " + minimumNumberOfSequences+StringUtil.lineEnding());
+		sb.append("    Minimum fraction of data in a sequence in the window for it to count: " + fractionApplicable+StringUtil.lineEnding());
 		if (writeOnlyWindow)
 			sb.append("    For each sequence write only the region in the matching window "+StringUtil.lineEnding());
 		else
