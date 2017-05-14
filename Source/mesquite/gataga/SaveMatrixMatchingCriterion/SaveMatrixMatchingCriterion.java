@@ -46,6 +46,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	int nthDistance = 1;
 	boolean verboseReport = false;
 	boolean appendAvgDivergence = true;
+	boolean orderedDistances = false;
 
 	boolean writeOnlyWindow = false;
 	boolean sequesterMatchedFiles = false;
@@ -137,6 +138,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		dialog.addLargeTextLabel(message);
 		dialog.addBlankLine();
 		dialog.suppressNewPanel();
+		
+		dialog.appendToHelpString("If distances are not reordered for the verbose report, then the order of distance is 1 vs 2, 1 vs 3, ... 1 vs n, 2 vs 3, 2 vs 4...");
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
 		DoubleField maxDistanceThresholdField = dialog.addDoubleField("Maximum distance threshold", maxDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
@@ -171,6 +174,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		Checkbox appendAvgDivergenceCheckbox = dialog.addCheckBox("add average divergence to exported file name" , appendAvgDivergence);
 		Checkbox sequesterMatchedFilesCheckbox = dialog.addCheckBox("sequester original files that matched criteria" , sequesterMatchedFiles);
 		Checkbox verboseReportCheckbox = dialog.addCheckBox("verbose report" , verboseReport);
+		Checkbox orderedDistancesCheckbox = dialog.addCheckBox("reorder distances in ascending order in verbose report" , orderedDistances);
 
 		dialog.addBlankLine();
 		dialog.completeAndShowDialog(true);
@@ -189,6 +193,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			verboseReport = verboseReportCheckbox.getState();
 			fractionApplicable = fractionApplicableField.getValue();
 			appendAvgDivergence = appendAvgDivergenceCheckbox.getState();
+			orderedDistances = orderedDistancesCheckbox.getState();
 		}
 
 		
@@ -300,7 +305,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					observedStates = data.getMCharactersDistribution();
 					PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
 					avgDivergence.setValue(pDistance.getAverageDistance());
-					divergences.setValue(pDistance.getOrderedDistanceString());
+					divergences.setValue(pDistance.getDistanceString(orderedDistances));
 				}
 				return true;
 			}
