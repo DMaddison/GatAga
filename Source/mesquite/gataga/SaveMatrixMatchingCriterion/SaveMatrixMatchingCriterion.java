@@ -147,6 +147,11 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
 		IntegerField windowEdgeBufferField = dialog.addIntegerField("Window edge buffer", windowEdgeBuffer, 12, 0, MesquiteInteger.infinite);
+		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
+		DoubleField fractionApplicableField = dialog.addDoubleField("Minimum fraction of data in the window for sequence", fractionApplicable, 12, 0.0, 1.0);
+		
+		dialog.addHorizontalLine(1);
+		
 		DoubleField maxDistanceThresholdField = dialog.addDoubleField("Maximum distance threshold", maxDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
 		dialog.addLabel("Distance to examine:", Label.CENTER);
 		RadioButtons maxDistanceCriterionRB = dialog.addRadioButtons(new String[] {"largest distance", "nth largest distance", "average distance"}, maxDistanceCriterion);
@@ -155,8 +160,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		RadioButtons minDistanceCriterionRB = dialog.addRadioButtons(new String[] {"smallest distance", "nth smallest distance", "average distance"}, maxDistanceCriterion);
 	//	Checkbox getMaximumDistanceCheckbox = dialog.addCheckBox("Use maximum (as opposed to average) distance" , useMaximumDistance);
 		IntegerField nthDistanceField = dialog.addIntegerField("value of n for nth distance calculation", nthDistance, 12, 1, MesquiteInteger.infinite);
-		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
-		DoubleField fractionApplicableField = dialog.addDoubleField("Minimum fraction of data in the window for sequence", fractionApplicable, 12, 0.0, 1.0);
+
+		dialog.addHorizontalLine(1);
 
 		MesquiteModule[] fInterpreters = getFileCoordinator().getImmediateEmployeesWithDuty(FileInterpreterI.class);
 		int count=1;
