@@ -139,6 +139,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		dialog.addBlankLine();
 		dialog.suppressNewPanel();
 		
+		dialog.appendToHelpString("If verbose report is requested, then appended to the line for a file that meets the criteria will be the start of the window, and the end of the window, the average pairwise distance, followed by a list of pairwise distances. ");
 		dialog.appendToHelpString("If distances are not reordered for the verbose report, then the order of distance is 1 vs 2, 1 vs 3, ... 1 vs n, 2 vs 3, 2 vs 4...");
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
