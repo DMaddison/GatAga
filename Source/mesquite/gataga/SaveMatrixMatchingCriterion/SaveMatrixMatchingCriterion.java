@@ -409,6 +409,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					}
 					fileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+fileName, exporterTask.getStandardFileExtensionForExport());
 					fileName = MesquiteFile.getFileNameFromFilePath(fileName);
+					String distanceFileName = fileName+".dist";
 
 
 					path = path + "." + exporterTask.preferredDataFileExtension(); 
@@ -452,6 +453,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 						if (verboseReport) {
 							result.append("\t"+(startWindow.getValue()+1) + "\t" + (endWindow.getValue()+1));
 							result.append("\t"+avgDivergence.getValue()+"\t"+divergences.toString());
+							saveDistanceFile(distanceFileName, directoryPath, data, startWindow, endWindow);
 						}
 					}
 					if (sequesterMatchedFiles)
@@ -480,6 +482,35 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			((FileInterpreterI)exporterTask).writeExcludedCharacters = !writeOnlyWindow;
 			coord.export((FileInterpreterI)exporterTask, file, s);
 		}
+	}
+	
+	
+	public void saveDistanceFile(String fileName, String directoryPath,CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow){
+		includeOnlyWindow(data,startWindow.getValue(),endWindow.getValue());
+		observedStates = data.getMCharactersDistribution();
+		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
+		StringBuffer sb = new StringBuffer();
+		Taxa taxa = data.getTaxa();
+		sb.append(data.getNumTaxaWithAnyApplicable(startWindow.getValue(), endWindow.getValue())+"\n");
+		Parser parser = new Parser();
+		parser.setWhitespaceString(" ");
+
+		for (int taxon1 = 0; taxon1<data.getNumTaxa(); taxon1++) {
+			if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon1)) {
+				parser.setString(taxa.getTaxonName(taxon1));
+				sb.append(StringUtil.blanksToUnderline(parser.getFirstToken()));
+				for (int taxon2=0; taxon2<data.getNumTaxa(); taxon2++) {
+					if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon2)) {
+						double distance = pDistance.getDistance(taxon1,taxon2);
+						if (MesquiteDouble.isCombinable(distance)) {
+							sb.append("\t"+(distance*100.0));	
+						}
+					}
+				}
+				sb.append("\n");
+			}
+		}
+		MesquiteFile.putFileContents(directoryPath+fileName, sb.toString(), false);
 	}
 
 
