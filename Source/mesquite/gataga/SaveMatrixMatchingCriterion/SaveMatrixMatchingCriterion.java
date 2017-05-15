@@ -50,6 +50,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 
 	boolean writeOnlyWindow = false;
 	boolean sequesterMatchedFiles = false;
+	int windowEdgeBuffer = 0;
 	
 
 	
@@ -139,10 +140,13 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		dialog.addBlankLine();
 		dialog.suppressNewPanel();
 		
+		dialog.appendToHelpString("The window edge buffer is the minimum distance that window needs to be from the edge of the matrix.  ");
+		dialog.appendToHelpString("If no acceptable window is far enough away from the edge, then the one furthest from the edge will be used instead.  ");
 		dialog.appendToHelpString("If verbose report is requested, then appended to the line for a file that meets the criteria will be the start of the window, and the end of the window, the average pairwise distance, followed by a list of pairwise distances. ");
 		dialog.appendToHelpString("If distances are not reordered for the verbose report, then the order of distance is 1 vs 2, 1 vs 3, ... 1 vs n, 2 vs 3, 2 vs 4...");
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
+		IntegerField windowEdgeBufferField = dialog.addIntegerField("Window edge buffer", windowEdgeBuffer, 12, 0, MesquiteInteger.infinite);
 		DoubleField maxDistanceThresholdField = dialog.addDoubleField("Maximum distance threshold", maxDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
 		dialog.addLabel("Distance to examine:", Label.CENTER);
 		RadioButtons maxDistanceCriterionRB = dialog.addRadioButtons(new String[] {"largest distance", "nth largest distance", "average distance"}, maxDistanceCriterion);
@@ -195,6 +199,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			fractionApplicable = fractionApplicableField.getValue();
 			appendAvgDivergence = appendAvgDivergenceCheckbox.getState();
 			orderedDistances = orderedDistancesCheckbox.getState();
+			windowEdgeBuffer = windowEdgeBufferField.getValue();
 		}
 
 		
@@ -295,21 +300,55 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		//Debugg.println("DISTANCE: " + distance);
 		return minDistance>=minDistanceThreshold && maxDistance<=maxDistanceThreshold;
 	}
+	/*.................................................................................................................*/
+	int distanceFromEdge(CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow) {
+		int startDistance = startWindow.getValue();
+		int endDistance = data.getNumChars()-(endWindow.getValue()+1);
+		if (endDistance<startDistance)
+			return endDistance;
+		return startDistance;
+		
+	}
 
+	/*.................................................................................................................*/
+	void setDivergences (CategoricalData data, MesquiteDouble avgDivergence, MesquiteString divergences) {
+		if ((verboseReport || appendAvgDivergence) && divergences!=null && avgDivergence!=null) {
+			observedStates = data.getMCharactersDistribution();
+			PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
+			avgDivergence.setValue(pDistance.getAverageDistance());
+			divergences.setValue(pDistance.getDistanceString(orderedDistances));
+		}
+	}
 	/*.................................................................................................................*/
 	boolean meetsCriterion(CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow, MesquiteDouble avgDivergence, MesquiteString divergences) {
 		if (data==null || startWindow==null || endWindow==null) 
 			return false;
+		boolean goodWindowAvailable = false;
+		int bestWindowStart = 0;
+		int bestWindowEnd=0;
+		int bestWindowBuffer = -1;
 		while (slideWindow(data,startWindow,endWindow,windowSize)) {
 			if (windowMeetsCriterion(data,startWindow.getValue(), endWindow.getValue())) {
-				if ((verboseReport || appendAvgDivergence) && divergences!=null && avgDivergence!=null) {
-					observedStates = data.getMCharactersDistribution();
-					PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
-					avgDivergence.setValue(pDistance.getAverageDistance());
-					divergences.setValue(pDistance.getDistanceString(orderedDistances));
+				int distanceFromEdge = distanceFromEdge(data, startWindow, endWindow);
+				if (distanceFromEdge>= windowEdgeBuffer){  // meets all criteria - no need to look further. 
+					setDivergences(data, avgDivergence, divergences);
+					return true;
 				}
-				return true;
+				goodWindowAvailable = true;
+				if (distanceFromEdge>bestWindowBuffer && distanceFromEdge<=windowEdgeBuffer) {  // if it beyond the buffer, no need to change
+					bestWindowBuffer = distanceFromEdge;
+					bestWindowStart = startWindow.getValue();
+					bestWindowEnd = endWindow.getValue();
+				}
+					
 			}
+		}
+		if (goodWindowAvailable) {
+			startWindow.setValue(bestWindowStart);
+			endWindow.setValue(bestWindowEnd);
+			includeOnlyWindow(data,bestWindowStart,bestWindowEnd);
+			setDivergences(data, avgDivergence, divergences);
+			return true;
 		}
 		return false;
 	}
