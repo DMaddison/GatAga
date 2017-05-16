@@ -140,7 +140,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		//dialog.addBlankLine();
 		//dialog.suppressNewPanel();
 		
-		dialog.appendToHelpString("The window edge buffer is the minimum distance that window needs to be from the edge of the matrix.  ");
+		dialog.appendToHelpString("This will examine each file and export those that match the specified criteria.  The window edge buffer is the minimum distance that window needs to be from the edge of the matrix.  ");
 		dialog.appendToHelpString("If no acceptable window is far enough away from the edge, then the one furthest from the edge will be used instead.  ");
 		dialog.appendToHelpString("If verbose report is requested, then appended to the line for a file that meets the criteria will be the start of the window, and the end of the window, the average pairwise distance, followed by a list of pairwise distances. ");
 		dialog.appendToHelpString("If distances are not reordered for the verbose report, then the order of distance is 1 vs 2, 1 vs 3, ... 1 vs n, 2 vs 3, 2 vs 4...");
@@ -148,14 +148,14 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		MesquiteTabbedPanel tabbedPanel = dialog.addMesquiteTabbedPanel();
 
 
-		tabbedPanel.addPanel("Window", true);
+		tabbedPanel.addPanel("Sliding window", true);
 
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
 		IntegerField windowEdgeBufferField = dialog.addIntegerField("Window edge buffer", windowEdgeBuffer, 12, 0, MesquiteInteger.infinite);
 		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
-		DoubleField fractionApplicableField = dialog.addDoubleField("Minimum fraction of data in the window for sequence", fractionApplicable, 12, 0.0, 1.0);
+		DoubleField fractionApplicableField = dialog.addDoubleField("Minimum fraction of data in the window for each sequence", fractionApplicable, 12, 0.0, 1.0);
 		
-		tabbedPanel.addPanel("Distance criteria", true);
+		tabbedPanel.addPanel("Distances", true);
 		
 		DoubleField maxDistanceThresholdField = dialog.addDoubleField("Maximum distance threshold", maxDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
 		dialog.addLabel("Distance to examine:", Label.CENTER);
