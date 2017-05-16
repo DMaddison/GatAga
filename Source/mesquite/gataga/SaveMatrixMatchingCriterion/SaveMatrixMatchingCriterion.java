@@ -29,7 +29,6 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	MesquiteSubmenuSpec mss= null;
 	FileInterpreter exporterTask;
 	
-	int windowSize = 100;
 	
 	static final int MINDISTANCE=0;
 	static final int MAXDISTANCE=0;
@@ -37,6 +36,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	static final int AVGDISTANCE=2;
 	int maxDistanceCriterion = MAXDISTANCE;
 	int minDistanceCriterion = MINDISTANCE;
+	int windowSize = 100;
 	
 //	boolean useMaximumDistance = true;
 	double maxDistanceThreshold = 1.0;
@@ -66,6 +66,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			if (exporterTask == null)
 				return sorry(getName() + " couldn't start because no exporter obtained.");
 		}*/
+		loadPreferences();
+
 		return true;
 	}
 	/*.................................................................................................................*/
@@ -88,6 +90,84 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	public boolean isSubstantive(){
 		return false; 
 	}
+	/*.................................................................................................................*/
+	public void processSingleXMLPreference (String tag, String content) {
+		if ("maxDistanceThreshold".equalsIgnoreCase(tag))
+			maxDistanceThreshold = MesquiteDouble.fromString(content);
+		if ("minDistanceThreshold".equalsIgnoreCase(tag))
+			minDistanceThreshold = MesquiteDouble.fromString(content);
+		if ("fractionApplicable".equalsIgnoreCase(tag))
+			fractionApplicable = MesquiteDouble.fromString(content);
+		
+		if ("windowEdgeBuffer".equalsIgnoreCase(tag))
+			windowEdgeBuffer = MesquiteInteger.fromString(content);
+		if ("maxDistanceCriterion".equalsIgnoreCase(tag))
+			maxDistanceCriterion = MesquiteInteger.fromString(content);
+		if ("minDistanceCriterion".equalsIgnoreCase(tag))
+			minDistanceCriterion = MesquiteInteger.fromString(content);
+		
+		if ("windowSize".equalsIgnoreCase(tag)){
+			windowSize = MesquiteInteger.fromString(content);
+			if (windowSize<1) windowSize=1;
+		}
+		if ("nthDistance".equalsIgnoreCase(tag)){
+			nthDistance = MesquiteInteger.fromString(content);
+			if (nthDistance<1) nthDistance=1;
+		}
+		if ("minimumNumberOfSequences".equalsIgnoreCase(tag)){
+			minimumNumberOfSequences = MesquiteInteger.fromString(content);
+			if (minimumNumberOfSequences<1) minimumNumberOfSequences=1;
+		}
+		
+		if ("writeOnlyWindow".equalsIgnoreCase(tag))
+			writeOnlyWindow = MesquiteBoolean.fromTrueFalseString(content);
+		if ("appendAvgDivergence".equalsIgnoreCase(tag))
+			appendAvgDivergence = MesquiteBoolean.fromTrueFalseString(content);
+		if ("orderedDistances".equalsIgnoreCase(tag))
+			orderedDistances = MesquiteBoolean.fromTrueFalseString(content);
+		if ("writeOnlyWindow".equalsIgnoreCase(tag))
+			writeOnlyWindow = MesquiteBoolean.fromTrueFalseString(content);
+		if ("sequesterMatchedFiles".equalsIgnoreCase(tag))
+			sequesterMatchedFiles = MesquiteBoolean.fromTrueFalseString(content);
+		if ("verboseReport".equalsIgnoreCase(tag))
+			verboseReport = MesquiteBoolean.fromTrueFalseString(content);
+		 if ("setFileInterpreter".equalsIgnoreCase(tag)) {
+			 replaceFileInterpreter(content);
+		}
+	}
+
+	/*.................................................................................................................*/
+	public String preparePreferencesForXML () {
+		StringBuffer buffer = new StringBuffer(200);
+		StringUtil.appendXMLTag(buffer, 2, "fractionApplicable", fractionApplicable);  
+		StringUtil.appendXMLTag(buffer, 2, "minDistanceThreshold", minDistanceThreshold);  
+		StringUtil.appendXMLTag(buffer, 2, "maxDistanceThreshold", maxDistanceThreshold);  
+		StringUtil.appendXMLTag(buffer, 2, "maxDistanceCriterion", maxDistanceCriterion);  
+		StringUtil.appendXMLTag(buffer, 2, "minDistanceCriterion", minDistanceCriterion);  
+		StringUtil.appendXMLTag(buffer, 2, "windowEdgeBuffer", windowEdgeBuffer);  
+		StringUtil.appendXMLTag(buffer, 2, "windowSize", windowSize);  
+		StringUtil.appendXMLTag(buffer, 2, "nthDistance", nthDistance);  
+		StringUtil.appendXMLTag(buffer, 2, "minimumNumberOfSequences", minimumNumberOfSequences);  
+		StringUtil.appendXMLTag(buffer, 2, "appendAvgDivergence", appendAvgDivergence);  
+		StringUtil.appendXMLTag(buffer, 2, "orderedDistances", orderedDistances);  
+		StringUtil.appendXMLTag(buffer, 2, "writeOnlyWindow", writeOnlyWindow);  
+		StringUtil.appendXMLTag(buffer, 2, "sequesterMatchedFiles", sequesterMatchedFiles);  
+		StringUtil.appendXMLTag(buffer, 2, "verboseReport", verboseReport);  
+		if (exporterTask!=null)
+			StringUtil.appendXMLTag(buffer, 2, "setFileInterpreter",exporterTask);
+
+		return buffer.toString();
+	}
+	/*.................................................................................................................*/
+	private FileInterpreter replaceFileInterpreter(String arguments) {
+		FileInterpreter temp = (FileInterpreter)replaceEmployee(FileInterpreter.class,  arguments, "Exporter of data", exporterTask);
+		if (temp !=null) {
+			exporterTask=temp;
+			exporterString=exporterTask.getName();
+		}
+		return temp;
+	}
+
 	/*.................................................................................................................*/
 	public Snapshot getSnapshot(MesquiteFile file) { 
 		Snapshot temp = new Snapshot();
@@ -206,6 +286,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	//		useMaximumDistance=getMaximumDistanceCheckbox.getState();
 			minimumNumberOfSequences=minimumNumberSeqField.getValue();
 			exporterString = exporterChoice.getSelectedItem();
+			FileCoordinator coord = getFileCoordinator();
+			exporterTask = (FileInterpreter)coord.findEmployeeWithName(exporterString);
 			writeOnlyWindow = writeOnlyWindowCheckbox.getState();
 			sequesterMatchedFiles = sequesterMatchedFilesCheckbox.getState();
 			verboseReport = verboseReportCheckbox.getState();
@@ -213,9 +295,9 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			appendAvgDivergence = appendAvgDivergenceCheckbox.getState();
 			orderedDistances = orderedDistancesCheckbox.getState();
 			windowEdgeBuffer = windowEdgeBufferField.getValue();
+			storePreferences();
 		}
 
-		
 
 		dialog.dispose();
 		dialog = null;

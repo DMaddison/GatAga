@@ -58,7 +58,7 @@ public class aGatagaIntro extends PackageIntro {
 	/*.................................................................................................................*/
 	/** Returns build number for a package of modules as an integer*/
 	public int getPackageBuildNumber(){
-		return 25;
+		return 26;
 	}
 	/*  Release dates:
 	 * */
