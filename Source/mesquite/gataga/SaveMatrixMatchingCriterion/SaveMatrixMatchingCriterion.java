@@ -410,7 +410,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					}
 					fileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+fileName, exporterTask.getStandardFileExtensionForExport());
 					fileName = MesquiteFile.getFileNameFromFilePath(fileName);
-					distanceFileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+distanceFileName,"dist");
+					distanceFileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+distanceFileName,"ident");
 					distanceFileName = MesquiteFile.getFileNameFromFilePath(distanceFileName);
 
 
@@ -505,7 +505,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon2)) {
 						double distance = pDistance.getDistance(taxon1,taxon2);
 						if (MesquiteDouble.isCombinable(distance)) {
-							sb.append("\t"+(distance*100.0));	
+							sb.append("\t"+((1.0-distance)*100.0));	
 						}
 					}
 				}
