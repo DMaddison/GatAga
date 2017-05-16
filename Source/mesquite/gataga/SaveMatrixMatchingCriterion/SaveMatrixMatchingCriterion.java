@@ -400,6 +400,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 						fileName = fileName.substring(0, fileName.length()-4);
 
 					}
+					String distanceFileName = fileName;
 					if (appendAvgDivergence) {
 						fileName+="&d"+avgDivergence.getValue();
 					}
@@ -409,7 +410,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					}
 					fileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+fileName, exporterTask.getStandardFileExtensionForExport());
 					fileName = MesquiteFile.getFileNameFromFilePath(fileName);
-					String distanceFileName = fileName+".dist";
+					distanceFileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+distanceFileName,"dist");
+					distanceFileName = MesquiteFile.getFileNameFromFilePath(distanceFileName);
 
 
 					path = path + "." + exporterTask.preferredDataFileExtension(); 
