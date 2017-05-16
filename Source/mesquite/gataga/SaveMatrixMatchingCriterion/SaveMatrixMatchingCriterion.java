@@ -135,22 +135,27 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
 		ExtensibleDialog dialog =  new ExtensibleDialog(containerOfModule(), "Export Matrices Matching Criteria", buttonPressed);
-		String message = "This will examine each file and export those that match the specified distance criteria.";
-		dialog.addLargeTextLabel(message);
-		dialog.addBlankLine();
-		dialog.suppressNewPanel();
+		//String message = "This will examine each file and export those that match the specified distance criteria.";
+		//dialog.addLargeTextLabel(message);
+		//dialog.addBlankLine();
+		//dialog.suppressNewPanel();
 		
 		dialog.appendToHelpString("The window edge buffer is the minimum distance that window needs to be from the edge of the matrix.  ");
 		dialog.appendToHelpString("If no acceptable window is far enough away from the edge, then the one furthest from the edge will be used instead.  ");
 		dialog.appendToHelpString("If verbose report is requested, then appended to the line for a file that meets the criteria will be the start of the window, and the end of the window, the average pairwise distance, followed by a list of pairwise distances. ");
 		dialog.appendToHelpString("If distances are not reordered for the verbose report, then the order of distance is 1 vs 2, 1 vs 3, ... 1 vs n, 2 vs 3, 2 vs 4...");
 
+		MesquiteTabbedPanel tabbedPanel = dialog.addMesquiteTabbedPanel();
+
+
+		tabbedPanel.addPanel("Window", true);
+
 		IntegerField windowSizeField = dialog.addIntegerField("Window size", windowSize, 12, 1, MesquiteInteger.infinite);
 		IntegerField windowEdgeBufferField = dialog.addIntegerField("Window edge buffer", windowEdgeBuffer, 12, 0, MesquiteInteger.infinite);
 		IntegerField minimumNumberSeqField = dialog.addIntegerField("Minimum number of sequences represented in window", minimumNumberOfSequences, 12, 1, MesquiteInteger.infinite);
 		DoubleField fractionApplicableField = dialog.addDoubleField("Minimum fraction of data in the window for sequence", fractionApplicable, 12, 0.0, 1.0);
 		
-		dialog.addHorizontalLine(1);
+		tabbedPanel.addPanel("Distance criteria", true);
 		
 		DoubleField maxDistanceThresholdField = dialog.addDoubleField("Maximum distance threshold", maxDistanceThreshold, 12, 0.0, MesquiteDouble.infinite);
 		dialog.addLabel("Distance to examine:", Label.CENTER);
@@ -161,7 +166,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	//	Checkbox getMaximumDistanceCheckbox = dialog.addCheckBox("Use maximum (as opposed to average) distance" , useMaximumDistance);
 		IntegerField nthDistanceField = dialog.addIntegerField("value of n for nth distance calculation", nthDistance, 12, 1, MesquiteInteger.infinite);
 
-		dialog.addHorizontalLine(1);
+		tabbedPanel.addPanel("Files", true);
 
 		MesquiteModule[] fInterpreters = getFileCoordinator().getImmediateEmployeesWithDuty(FileInterpreterI.class);
 		int count=1;
@@ -185,6 +190,9 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		Checkbox sequesterMatchedFilesCheckbox = dialog.addCheckBox("sequester original files that matched criteria" , sequesterMatchedFiles);
 		Checkbox verboseReportCheckbox = dialog.addCheckBox("verbose report" , verboseReport);
 		Checkbox orderedDistancesCheckbox = dialog.addCheckBox("reorder distances in ascending order in verbose report" , orderedDistances);
+
+		tabbedPanel.cleanup();
+		dialog.nullifyAddPanel();
 
 		dialog.addBlankLine();
 		dialog.completeAndShowDialog(true);
