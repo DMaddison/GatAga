@@ -399,6 +399,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 	int distanceFromEdge(CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow) {
 		int startDistance = startWindow.getValue();
 		int endDistance = data.getNumChars()-(endWindow.getValue()+1);
+		if (endDistance<0)
+			endDistance=0;
 		if (endDistance<startDistance)
 			return endDistance;
 		return startDistance;
@@ -428,6 +430,11 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 				if (distanceFromEdge>= windowEdgeBuffer){  // meets all criteria - no need to look further. 
 					setDivergences(data, avgDivergence, divergences);
 					return true;
+				}
+				if (!goodWindowAvailable){  // we've never encountered one before, so let's at least set this one.
+					bestWindowBuffer = distanceFromEdge;
+					bestWindowStart = startWindow.getValue();
+					bestWindowEnd = endWindow.getValue();
 				}
 				goodWindowAvailable = true;
 				if (distanceFromEdge>bestWindowBuffer && distanceFromEdge<=windowEdgeBuffer) {  // if it beyond the buffer, no need to change
@@ -633,6 +640,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		}
 		return "";
 	}
+
 	/*.................................................................................................................*/
 	public String getNameAndParameters() {
 		StringBuffer sb = new StringBuffer();
@@ -643,18 +651,29 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 		sb.append(StringUtil.lineEnding());
 		sb.append("  Criteria:" + StringUtil.lineEnding());
 		sb.append("    Window Size: " + windowSize+StringUtil.lineEnding());
+		sb.append("    Window Edge Buffer: " + windowEdgeBuffer+StringUtil.lineEnding());
+		sb.append("    Minimum Number of Sequences: " + minimumNumberOfSequences+StringUtil.lineEnding());
+		sb.append("    Minimum fraction of data in a sequence in the window for it to count: " + fractionApplicable+StringUtil.lineEnding());
+		
 		sb.append("    Maximum Distance Threshold: " + maxDistanceThreshold+StringUtil.lineEnding());
 		sb.append("    Maximum Distance Criterion: " + distanceCriterionName(true)+StringUtil.lineEnding());
 		sb.append("    Minimum Distance Threshold: " + minDistanceThreshold+StringUtil.lineEnding());
 		sb.append("    Minimum Distance Criterion: " + distanceCriterionName(false)+StringUtil.lineEnding());
 		if (maxDistanceCriterion==NTHDISTANCE)
 			sb.append("    Value of n: " + nthDistance+StringUtil.lineEnding());
-		sb.append("    Minimum Number of Sequences: " + minimumNumberOfSequences+StringUtil.lineEnding());
-		sb.append("    Minimum fraction of data in a sequence in the window for it to count: " + fractionApplicable+StringUtil.lineEnding());
+		
 		if (writeOnlyWindow)
 			sb.append("    For each sequence write only the region in the matching window "+StringUtil.lineEnding());
 		else
 			sb.append("    Write entire sequences "+StringUtil.lineEnding());
+
+		if (verboseReport) {
+			sb.append("    For each file that meets the criteria, write the average distance and then a list of pairwise distances"+StringUtil.lineEnding());
+			if (orderedDistances)
+				sb.append("      List pairwise distances in ascending order "+StringUtil.lineEnding());
+			else
+				sb.append("      List pairwise distances  1 vs 2, 1 vs 3, ... 1 vs n, 2 vs 3, 2 vs 4..."+StringUtil.lineEnding());
+		}
 		return sb.toString();
 	}
 	/*.................................................................................................................*/
