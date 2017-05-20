@@ -18,7 +18,7 @@ import mesquite.lib.duties.*;
 import mesquite.lib.table.*;
 
 /* ======================================================================== */
-public class SaveMatrixMatchingCriterion extends FileProcessor {
+public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonFilterer {
 	public void getEmployeeNeeds(){  //This gets called on startup to harvest information; override this and inside, call registerEmployeeNeed
 		EmployeeNeed e2 = registerEmployeeNeed(FileInterpreterI.class, getName() + " needs a file exporter.",
 				null);
@@ -416,6 +416,11 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			divergences.setValue(pDistance.getDistanceString(orderedDistances));
 		}
 	}
+	public boolean filterTaxon(CharacterData data, int it) {
+		if (fractionApplicable<1.0) 
+				return data.getFractionApplicableInTaxon(it, false)>=fractionApplicable;
+		return true;
+	}
 	/*.................................................................................................................*/
 	boolean meetsCriterion(CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow, MesquiteDouble avgDivergence, MesquiteString divergences) {
 		if (data==null || startWindow==null || endWindow==null) 
@@ -442,7 +447,6 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 					bestWindowStart = startWindow.getValue();
 					bestWindowEnd = endWindow.getValue();
 				}
-					
 			}
 		}
 		if (goodWindowAvailable) {
@@ -569,8 +573,13 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 
 		return true;
 	}
+	
+
+
 	public void saveFile(String exporterName, MesquiteFile file, String fileName, String directoryPath, FileCoordinator coord, boolean usePrevious){
 		file.writeExcludedCharacters=!writeOnlyWindow;
+		file.fractionApplicable=fractionApplicable;
+		file.setTaxonFilterer(this);
 		if (exporterName.equals("NEXUS file")) {
 			coord.writeFile(file);
 		}
@@ -579,8 +588,10 @@ public class SaveMatrixMatchingCriterion extends FileProcessor {
 			if (usePrevious)
 				s += " usePrevious";
 			((FileInterpreterI)exporterTask).writeExcludedCharacters = !writeOnlyWindow;
+			((FileInterpreterI)exporterTask).fractionApplicable = fractionApplicable;
 			coord.export((FileInterpreterI)exporterTask, file, s);
 		}
+		file.fractionApplicable = 1.0;
 	}
 	
 	
