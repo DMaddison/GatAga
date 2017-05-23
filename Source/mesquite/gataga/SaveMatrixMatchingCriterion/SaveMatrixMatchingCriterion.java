@@ -502,6 +502,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 				logln("Processing file: " + file.getName());
 				MesquiteInteger startWindow = new MesquiteInteger(-1);
 				MesquiteInteger endWindow = new MesquiteInteger(windowSize-2);
+				if (endWindow.getValue()>=data.getNumChars())
+					endWindow.setValue(data.getNumChars()-2);
 				MesquiteDouble avgDivergence = new MesquiteDouble(0.0);
 				MesquiteString divergences = new MesquiteString();
 				if ((test == null || test.isCompatible(data.getStateClass(), getProject(), this)) && meetsCriterion(data, startWindow, endWindow, avgDivergence, divergences)) {
