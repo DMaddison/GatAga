@@ -349,6 +349,18 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 	}
 
 	/*.................................................................................................................*/
+	Bits getAcceptableTaxa (CategoricalData data, int icStart, int icEnd) {
+		Bits taxonBits = new Bits(data.getNumTaxa());
+		taxonBits.clearAllBits();
+		int width = icEnd-icStart+1;
+		for (int it=0; it<data.getNumTaxa(); it++) {
+			int num = data.getNumberApplicableInTaxon(it, icStart, icEnd, false);
+			if (1.0*num/width >= fractionApplicable)
+				taxonBits.setBit(it);
+		}
+		return taxonBits;
+	}
+	/*.................................................................................................................*/
 	boolean acceptableRepresentation (CategoricalData data, int icStart, int icEnd) {
 		int width = icEnd-icStart+1;
 		int count = 0;
@@ -367,7 +379,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 			return false;
 		includeOnlyWindow(data,icStart,icEnd);
 		observedStates = data.getMCharactersDistribution();
-		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
+		Bits taxonBits = getAcceptableTaxa(data, icStart, icEnd);
+		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true, taxonBits);
 		double maxDistance = 0.0;
 		switch (maxDistanceCriterion) {
 		case MAXDISTANCE:
@@ -408,10 +421,11 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 	}
 
 	/*.................................................................................................................*/
-	void setDivergences (CategoricalData data, MesquiteDouble avgDivergence, MesquiteString divergences) {
+	void setDivergences (CategoricalData data, int icStart, int icEnd, MesquiteDouble avgDivergence, MesquiteString divergences) {
 		if ((verboseReport || appendAvgDivergence) && divergences!=null && avgDivergence!=null) {
 			observedStates = data.getMCharactersDistribution();
-			PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
+			Bits taxonBits = getAcceptableTaxa(data, icStart, icEnd);
+			PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true, taxonBits);
 			avgDivergence.setValue(pDistance.getAverageDistance());
 			divergences.setValue(pDistance.getDistanceString(orderedDistances));
 		}
@@ -433,7 +447,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 			if (windowMeetsCriterion(data,startWindow.getValue(), endWindow.getValue())) {
 				int distanceFromEdge = distanceFromEdge(data, startWindow, endWindow);
 				if (distanceFromEdge>= windowEdgeBuffer){  // meets all criteria - no need to look further. 
-					setDivergences(data, avgDivergence, divergences);
+					setDivergences(data, startWindow.getValue(), endWindow.getValue(), avgDivergence, divergences);
 					return true;
 				}
 				if (!goodWindowAvailable){  // we've never encountered one before, so let's at least set this one.
@@ -453,7 +467,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 			startWindow.setValue(bestWindowStart);
 			endWindow.setValue(bestWindowEnd);
 			includeOnlyWindow(data,bestWindowStart,bestWindowEnd);
-			setDivergences(data, avgDivergence, divergences);
+			setDivergences(data, startWindow.getValue(), endWindow.getValue(), avgDivergence, divergences);
 			return true;
 		}
 		return false;
@@ -598,7 +612,8 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 	public void saveDistanceFile(String fileName, String directoryPath,CategoricalData data, MesquiteInteger startWindow, MesquiteInteger endWindow){
 		includeOnlyWindow(data,startWindow.getValue(),endWindow.getValue());
 		observedStates = data.getMCharactersDistribution();
-		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true);
+		Bits taxonBits = getAcceptableTaxa(data, startWindow.getValue(),endWindow.getValue());
+		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true, taxonBits);
 		StringBuffer sb = new StringBuffer();
 		Taxa taxa = data.getTaxa();
 		sb.append(data.getNumTaxaWithAnyApplicable(startWindow.getValue(), endWindow.getValue())+"\n");
@@ -699,9 +714,10 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 class PTaxaDistance extends DNATaxaDistance {
 	MesquiteModule ownerModule;
 	
-	public PTaxaDistance(MesquiteModule ownerModule, Taxa taxa, MCharactersDistribution observedStates, boolean estimateAmbiguityDifferences){
+	public PTaxaDistance(MesquiteModule ownerModule, Taxa taxa, MCharactersDistribution observedStates, boolean estimateAmbiguityDifferences, Bits taxonBits){
 		super(ownerModule, taxa, observedStates,estimateAmbiguityDifferences, false);
 		this.ownerModule = ownerModule;
+		this.taxonBits = taxonBits;
 		MesquiteDouble N = new MesquiteDouble();
 		MesquiteDouble D = new MesquiteDouble();
 		setEstimateAmbiguityDifferences(true);
