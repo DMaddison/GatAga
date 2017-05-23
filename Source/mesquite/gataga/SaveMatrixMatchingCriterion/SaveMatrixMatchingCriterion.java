@@ -619,21 +619,23 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 		sb.append(data.getNumTaxaWithAnyApplicable(startWindow.getValue(), endWindow.getValue())+"\n");
 		Parser parser = new Parser();
 		parser.setWhitespaceString(" ");
-
+		
 		for (int taxon1 = 0; taxon1<data.getNumTaxa(); taxon1++) {
-			if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon1)) {
-				parser.setString(taxa.getTaxonName(taxon1));
-				sb.append(StringUtil.blanksToUnderline(parser.getFirstToken()));
-				for (int taxon2=0; taxon2<data.getNumTaxa(); taxon2++) {
-					if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon2)) {
-						double distance = pDistance.getDistance(taxon1,taxon2);
-						if (MesquiteDouble.isCombinable(distance)) {
-							sb.append("\t"+((1.0-distance)*100.0));	
-						}
+			if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon1)) 
+				if (taxonBits.isBitOn(taxon1)) {
+					parser.setString(taxa.getTaxonName(taxon1));
+					sb.append(StringUtil.blanksToUnderline(parser.getFirstToken()));
+					for (int taxon2=0; taxon2<data.getNumTaxa(); taxon2++) {
+						if (data.anyApplicableInRange(startWindow.getValue(), endWindow.getValue(), taxon2)) 
+							if (taxonBits.isBitOn(taxon2)) {
+								double distance = pDistance.getDistance(taxon1,taxon2);
+								if (MesquiteDouble.isCombinable(distance)) {
+									sb.append("\t"+((1.0-distance)*100.0));	
+								}
+							}
 					}
+					sb.append("\n");
 				}
-				sb.append("\n");
-			}
 		}
 		MesquiteFile.putFileContents(directoryPath+fileName, sb.toString(), false);
 	}
