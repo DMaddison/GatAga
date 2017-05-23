@@ -616,7 +616,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 		PTaxaDistance pDistance = new PTaxaDistance(this, data.getTaxa(), observedStates, true, taxonBits);
 		StringBuffer sb = new StringBuffer();
 		Taxa taxa = data.getTaxa();
-		sb.append(data.getNumTaxaWithAnyApplicable(startWindow.getValue(), endWindow.getValue())+"\n");
+		sb.append(""+taxonBits.numBitsOn()+"\n");
 		Parser parser = new Parser();
 		parser.setWhitespaceString(" ");
 		
