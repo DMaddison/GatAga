@@ -525,7 +525,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 						path = path + (im + 1);
 						fileName = fileName + (im + 1);
 					}
-					fileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+fileName, exporterTask.getStandardFileExtensionForExport());
+					fileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+fileName, exporterTask.preferredDataFileExtension());
 					fileName = MesquiteFile.getFileNameFromFilePath(fileName);
 					distanceFileName = MesquiteFile.getUniqueModifiedFileName(directoryPath+distanceFileName,"ident");
 					distanceFileName = MesquiteFile.getFileNameFromFilePath(distanceFileName);
