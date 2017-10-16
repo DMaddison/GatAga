@@ -133,7 +133,7 @@ public class ExportFASTAByGene extends FileInterpreterI {
 			for (int it = 0; it<numTaxa; it++){  //go through the taxa
 				if (!writeOnlySelectedTaxa || (taxa.getSelected(it))) {   // find the taxa to write
 					CharacterData data = getProject().getCharacterMatrix(taxa, matrixNumber);    //
-					if ((data instanceof CategoricalData)) {  // write data for this matrix
+					if ((data instanceof CategoricalData) && data.isUserVisible()) {  // write data for this matrix
 						if (!includeOnlyTaxaWithData || taxonHasData(data, it)){
 							boolean isProtein = data instanceof ProteinData;
 							ProteinData pData =null;
@@ -225,10 +225,10 @@ public class ExportFASTAByGene extends FileInterpreterI {
 		for (int im=0; im<numMatrices; im++) {		
 			StringBuffer outputBuffer = getDataAsFileText(file, taxa, im);
 
-			if (outputBuffer!=null) {
+			if (outputBuffer!=null && StringUtil.notEmpty(outputBuffer.toString())) {
 				CharacterData data = getProject().getCharacterMatrix(taxa, im);    //
-				
-				saveExportedFileWithExtension(outputBuffer, arguments, data.getName(), "fas", path+"."+data.getName() + ".fas");
+				String fileName = StringUtil.removeCharacters(data.getName(),"/\\");
+				saveExportedFileWithExtension(outputBuffer, arguments, data.getName(), "fas", path+"."+fileName + ".fas");
 				someExported=true;
 			}
 		}
