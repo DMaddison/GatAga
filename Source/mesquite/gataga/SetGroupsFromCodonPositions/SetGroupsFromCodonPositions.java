@@ -43,29 +43,27 @@ public class SetGroupsFromCodonPositions extends DNADataAlterer {
 		return false;
 	}
 
-	/*int startingPos = 0;
-	double skipPercentage = 100.00;
+	boolean refineExistingGroups = true;
 
 	boolean queryOptions(){
 		MesquiteInteger buttonPressed = new MesquiteInteger(1);
-		ExtensibleDialog queryDialog = new ExtensibleDialog(containerOfModule(), "Setting Codon Positions",  buttonPressed);
-		queryDialog.addLabel("Setting Codon Positions of selected characters", Label.CENTER);
-		RadioButtons choices = queryDialog.addRadioButtons (new String[]{"123123...", "23123...", "3123...", "Minimize Stop Codons"}, 0);
-		DoubleField skip = queryDialog.addDoubleField ("Skip (and set non-coding) sites with % internal gaps >", skipPercentage, 6, 0, 100.00);
+		ExtensibleDialog queryDialog = new ExtensibleDialog(containerOfModule(), "Setting Groups from Codon Positions",  buttonPressed);
+		queryDialog.addLabel("Set groups from codon positions", Label.CENTER);
+		Checkbox refine = queryDialog.addCheckBox ("Refine existing groups using codon positions", false);
 
 		queryDialog.completeAndShowDialog(true);
 
 		boolean ok = (queryDialog.query()==0);
 
 		if (ok) {
-			startingPos = choices.getValue();
-			skipPercentage = skip.getValue();
+			refineExistingGroups = refine.getState();
 		}
 
 		queryDialog.dispose();   		 
 
 		return ok;
 	}
+
 	/*.................................................................................................................*/
 	/** Called to alter data in those cells selected in table*/
 	public boolean alterData(CharacterData dData, MesquiteTable table,  UndoReference undoReference){
@@ -75,11 +73,17 @@ public class SetGroupsFromCodonPositions extends DNADataAlterer {
 			MesquiteMessage.warnProgrammer("Can use " + getName() + " only on DNA data");
 			return false;
 		}
+		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
+			if (!queryOptions())
+				return false;
+			
+		}
 		data = dData;
 		CodonPositionsSet modelSet = (CodonPositionsSet) data.getCurrentSpecsSet(CodonPositionsSet.class);
 		if (modelSet ==null)
 			return false;
 		DNAData data = (DNAData)dData;
+		CharacterPartition currentPartition = (CharacterPartition)data.getCurrentSpecsSet(CharacterPartition.class);
 		CharacterPartition  partition= new CharacterPartition("Partition by Codon Positions", data.getNumChars(), null, data);
 		partition.addToFile(data.getFile(), getProject(), findElementManager(CharacterPartition.class));
 		data.setCurrentSpecsSet(partition, CharacterPartition.class);
@@ -113,10 +117,33 @@ public class SetGroupsFromCodonPositions extends DNADataAlterer {
 			pos[3].addToFile(data.getFile(), data.getProject(), null);
 			pos[3].setColor(Color.red);
 		}
+		Debugg.println("refine " + refineExistingGroups);
 		for (int ic=0; ic<data.getNumChars(); ic++) {
 			int position = modelSet.getInt(ic);
-			if (position<4)
-				partition.setProperty(pos[position], ic);
+			if (position<4) {
+				if (refineExistingGroups){
+					CharactersGroup current = null;
+					if (currentPartition != null)
+						current = (CharactersGroup)currentPartition.getProperty(ic);
+					if (current == null)
+						partition.setProperty(pos[position], ic);
+					else {
+						String currentName = current.getName();
+						String targetName = currentName + "_" + pos[position].getName();
+						CharactersGroup targetGroup = (CharactersGroup)groups.getElement(targetName);
+						if (targetGroup == null){
+							targetGroup = new CharactersGroup();
+							targetGroup.setName(targetName);
+							targetGroup.addToFile(data.getFile(), data.getProject(), null);
+							targetGroup.setColor(pos[position].getColor());
+						}
+						partition.setProperty(targetGroup, ic);
+					}
+				}
+				else {
+					partition.setProperty(pos[position], ic);
+				}
+			}
 		}
 
 		//find if there are character groups called "pos1", "pos2", etc..  If they exist, use them; otherwise make new ones
