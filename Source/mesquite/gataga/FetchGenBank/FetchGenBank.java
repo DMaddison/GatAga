@@ -226,7 +226,15 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 	}
 	/*.................................................................................................................*/
 	String translateGeneName(String originalGeneName) {
-		for (int i=0;i<originalGeneNames.length; i++) {
+		if (originalGeneNames==null)
+			return originalGeneName;
+		for (int i=0;i<originalGeneNames.length; i++) {  // first lets see if there is an exact match
+			if (originalGeneName.equalsIgnoreCase(originalGeneNames[i])){
+				currentFragmentName= fragmentNames[i];
+				return standardizedGeneNames[i];
+			}
+		}
+		for (int i=0;i<originalGeneNames.length; i++) {  // now look to see if the name is contained within another
 			if (originalGeneName.toLowerCase().indexOf(originalGeneNames[i].toLowerCase())>=0){
 				currentFragmentName= fragmentNames[i];
 				return standardizedGeneNames[i];
@@ -247,6 +255,12 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 				Element qualifierElement = (Element) iter2.next();
 				Element gbQualifierName = qualifierElement.element("GBQualifier_name");
 				if ("product".equalsIgnoreCase(gbQualifierName.getText())) {
+					Element gbQualifierValue = qualifierElement.element("GBQualifier_value");
+					geneName = gbQualifierValue.getText();
+					if (useTranslationTable && StringUtil.notEmpty(geneName)) {
+						return translateGeneName(geneName);
+					}
+				} else if ("gene".equalsIgnoreCase(gbQualifierName.getText())) {
 					Element gbQualifierValue = qualifierElement.element("GBQualifier_value");
 					geneName = gbQualifierValue.getText();
 					if (useTranslationTable && StringUtil.notEmpty(geneName)) {
@@ -281,8 +295,15 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 				voucherC = voucherInfo;
 		}
 
+		if ("EU142693".equalsIgnoreCase(accession)) {
+			Debugg.println("EU142693");
+		}
+
 		String geneN = getGeneInfo(featureTableElement, true);
 
+if ("EU142693".equalsIgnoreCase(accession)) {
+	Debugg.println("gene Name: " + geneN);
+}
 		if (accessionNumber!=null)
 			accessionNumber.setValue(accession);
 		if (taxonName!=null)
@@ -299,7 +320,7 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 	/** Called to operate on the data in all cells.  Returns true if data altered*/
 	public synchronized boolean fetchGenBank(){ 
 		logln("\nFetching GenBank entries: "  + genBankNumbers);
-		try {
+//		try {
 			String directory = MesquiteFile.chooseDirectory("Choose directory into which files will be saved:");
 			if (StringUtil.blank(directory))
 				return false;
@@ -397,10 +418,12 @@ public class FetchGenBank extends UtilitiesAssistant implements ActionListener {
 			return sequencesFetched;
 
 
-		} catch ( Exception e ){
-			logln("Could not fetch GenBank sequences: " + e.getMessage());
+/*		} catch ( Exception e ){
+			logln("Could not fetch GenBank sequences.");
+			logln("Message: " + e.getMessage());
+			logln("Exception: " + e.toString());
 			return false;
-		}
+		} */
 	}
 	/*.................................................................................................................*/
 	public Object doCommand(String commandName, String arguments, CommandChecker checker) {
