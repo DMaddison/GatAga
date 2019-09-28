@@ -14,6 +14,9 @@ package mesquite.gataga.ProcessFastaFiles;
 
 
 import mesquite.lib.*;
+
+import java.awt.Checkbox;
+
 import mesquite.dmanager.lib.*;
 
 
@@ -115,14 +118,18 @@ public class ProcessFastaFiles extends ProcessDataFilesLib {
 
 	
 	/*.................................................................................................................*/
-	boolean proteinCoding = false;  //QUERY about this???
+	boolean proteinCoding = false; 
 
 	protected void adjustFile(MesquiteFile fileToWrite){
 		MesquiteFile.appendFileContents(fileToWrite.getPath(), appendToFile(proteinCoding), true);
 	}
 	/*.................................................................................................................*/
 	protected String getImporterName(){
-		return "#InterpretFastaDNA";
+		proteinCoding = !AlertDialog.query(this, "Nucleotides or Amino Acids?", "Are the matrixes composed of nucleotides or amino acids?", "Nucleotides", "Amino Acids", 0, "");
+		if (proteinCoding)
+			return "#InterpretFastaProtein";
+		else
+			return "#InterpretFastaDNA";
 	}
 
 
