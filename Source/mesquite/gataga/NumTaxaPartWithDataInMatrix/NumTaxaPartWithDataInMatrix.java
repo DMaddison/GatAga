@@ -1,12 +1,14 @@
-package mesquite.gataga.NumSelTaxaWithDataInMatrix;
+package mesquite.gataga.NumTaxaPartWithDataInMatrix;
 
 
+
+import java.util.Vector;
 
 import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
 
-public class NumSelTaxaWithDataInMatrix extends NumberForMatrix {
+public class NumTaxaPartWithDataInMatrix extends NumberForMatrix {
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		return true;
@@ -22,12 +24,30 @@ public class NumSelTaxaWithDataInMatrix extends NumberForMatrix {
 		clearResultAndLastResult(result);
 		int count = 0;
 		Taxa taxa = data.getTaxa();
-		boolean anySelected = taxa.anySelected();
-		for (int it = 0; it<data.getNumTaxa(); it++){
-			if ((!anySelected || taxa.getSelected(it)) && hasData(data, it))
-				count++;
+		TaxaPartition partition = (TaxaPartition) taxa.getCurrentSpecsSet(TaxaPartition.class);
+		if (partition == null){
+			boolean found = false;
+			for (int it = 0; it<data.getNumTaxa() && !found; it++){
+				if (hasData(data, it)){
+					found = true;
+				}
+			}
+			if (found)
+				count = 1;
 		}
+		else {
+			Vector foundPartitions = new Vector();
 
+			for (int it = 0; it<data.getNumTaxa(); it++){
+				if (hasData(data, it)){
+					TaxaGroup group = partition.getTaxaGroup(it);
+					if (foundPartitions.indexOf(group)<0){
+						foundPartitions.addElement(group);
+					}
+				}
+			}
+			count = foundPartitions.size();
+		}
 
 		if (count>0) {
 			result.setValue(count); 
@@ -35,7 +55,7 @@ public class NumSelTaxaWithDataInMatrix extends NumberForMatrix {
 			result.setValue(0.0); 
 
 		if (resultString!=null) {
-			resultString.setValue("Number of selected taxa with data: " + result.toString());
+			resultString.setValue("Number of taxon partitions with data: " + result.toString());
 		}
 		saveLastResult(result);
 		saveLastResultString(resultString);
@@ -62,11 +82,11 @@ public class NumSelTaxaWithDataInMatrix extends NumberForMatrix {
 	}
 
 	public String getName() {
-		return "Number of Selected Taxa with Data in Matrix";
+		return "Number of Taxa Partitions with Data in Matrix";
 	} 
 
 	public String getExplanation(){
-		return "Counts the number of taxa, among those selected, with data (not ? and not gaps) the matrix.";
+		return "Counts the number of taxa partitions containing taxa that have data (not ? and not gaps) the matrix.";
 	} 
 
 } 
