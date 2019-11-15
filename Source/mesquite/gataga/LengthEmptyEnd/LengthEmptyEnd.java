@@ -1,11 +1,11 @@
-package mesquite.gataga.LengthEmptyStart;
+package mesquite.gataga.LengthEmptyEnd;
 
 
 import mesquite.lib.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.duties.*;
 
-public class LengthEmptyStart extends NumberForMatrix {
+public class LengthEmptyEnd extends NumberForMatrix {
 
 	public boolean startJob(String arguments, Object condition, boolean hiredByName) {
 		return true;
@@ -33,23 +33,23 @@ public class LengthEmptyStart extends NumberForMatrix {
 		}
 		int threshold = (int)(emptyThreshold*totalNumSequences);  // this is the number of taxa with data that needs to be exceeded at a site for that site to be considered not empty
 		
-		int numEmptyStart =0;
-		for (int ic=0; ic<numChars; ic++){
+		int numEmptyEnd =0;
+		for (int ic=numChars-1; ic>=0; ic--){
 			int count =0;
 			for (int it=0; it<numTaxa; it++) {
 				if (!parentData.isInapplicable(ic,it) && !parentData.isUnassigned(ic,it))
 					count++;
 			}
 			if (count<threshold)
-				numEmptyStart++;
+				numEmptyEnd++;
 			else  // we are above the threshold
 				break;
 		}
 
-		result.setValue(numEmptyStart); 
+		result.setValue(numEmptyEnd); 
 
 		if (resultString!=null) {
-			resultString.setValue("Length Empty Start: " + result.toString());
+			resultString.setValue("Length Empty End: " + result.toString());
 		}
 		saveLastResult(result);
 		saveLastResultString(resultString);
@@ -60,11 +60,11 @@ public class LengthEmptyStart extends NumberForMatrix {
 	}
 
 	public String getName() {
-		return "Length Empty Start";
+		return "Length Empty End";
 	} 
 
 	public String getExplanation(){
-		return "Calculates the length of \"empty\" start of the matrix.";
+		return "Calculates the length of \"empty\" end of the matrix.";
 	} 
 
 } 
