@@ -386,16 +386,16 @@ if ("EU142693".equalsIgnoreCase(accession)) {
 							fileContents.append(">");
 							if (includeTaxonNameIntoFASTAFile.getValue()) 
 								if (!taxonName.isBlank())
-									fileContents.append(taxonName.getValue()+" ");
+									fileContents.append(taxonName.getValue());
 							if (includeGeneInfoIntoFASTAFile.getValue()) {
 								if (!geneName.isBlank())
-									fileContents.append(geneName.getValue()+ " ");
+									fileContents.append(" "+geneName.getValue());
 								if (StringUtil.notEmpty(currentFragmentName))
-									fileContents.append(currentFragmentName+ " ");
+									fileContents.append(" "+currentFragmentName);
 							}
 							if (includeVoucherCodeIntoFASTAFile.getValue()) 
 								if (!voucherCode.isBlank())
-									fileContents.append(voucherCode.getValue()+ " ");
+									fileContents.append(" "+voucherCode.getValue());
 							fileContents.append(StringUtil.lineEnding());
 							if (!sequence.isBlank())
 								fileContents.append(sequence.getValue());
