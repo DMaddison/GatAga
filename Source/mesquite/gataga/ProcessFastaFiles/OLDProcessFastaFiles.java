@@ -15,7 +15,6 @@ package mesquite.gataga.ProcessFastaFiles;
 import java.io.*;
 import java.util.Vector;
 
-import org.apache.commons.lang.SystemUtils;
 
 import mesquite.lib.*;
 import mesquite.io.lib.*;
