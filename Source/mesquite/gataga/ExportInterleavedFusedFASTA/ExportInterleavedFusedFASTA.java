@@ -114,13 +114,13 @@ public class ExportInterleavedFusedFASTA extends FileInterpreterI {
 
 	/*.................................................................................................................*/
 
- 	public  StringBuffer getDataAsFileText(MesquiteFile file, Taxa taxa) {
+ 	public  MesquiteStringBuffer getDataAsFileText(MesquiteFile file, Taxa taxa) {
 
 		int numMatrices = getProject().getNumberCharMatrices(taxa);
 		if (numMatrices<=0)
 			return null;
 		CharacterData firstData = getProject().getCharacterMatrix(taxa, 0); 
-		StringBuffer outputBuffer = new StringBuffer();
+		MesquiteStringBuffer outputBuffer = new MesquiteStringBuffer();
 
 		boolean firstCategorical = true;
 		//int numTaxa = taxa.getNumTaxa();
@@ -151,7 +151,7 @@ public class ExportInterleavedFusedFASTA extends FileInterpreterI {
 
 							for (int ic = 0; ic<numChars; ic++) {
 								if (!writeOnlySelectedData || (data.getSelected(ic))){
-									int currentSize = outputBuffer.length();
+									long currentSize = outputBuffer.length();
 									boolean wroteMoreThanOneSymbol = false;
 									boolean wroteSymbol = false;
 									if (data.isUnassigned(ic, it) || (convertMultStateToMissing && isProtein && pData.isMultistateOrUncertainty(ic, it))){
@@ -213,7 +213,7 @@ public class ExportInterleavedFusedFASTA extends FileInterpreterI {
 			if (!getExportOptions(taxa.anySelected()))
 				return false;
 
-		StringBuffer outputBuffer = getDataAsFileText(file, taxa);
+		MesquiteStringBuffer outputBuffer = getDataAsFileText(file, taxa);
 
 		if (outputBuffer!=null) {
 			saveExportedFileWithExtension(outputBuffer, arguments, "fas");

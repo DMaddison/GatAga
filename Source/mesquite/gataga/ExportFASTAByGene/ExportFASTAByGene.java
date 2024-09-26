@@ -118,9 +118,9 @@ public class ExportFASTAByGene extends FileInterpreterI {
 
 	/*.................................................................................................................*/
 
- 	public  StringBuffer getDataAsFileText(MesquiteFile file, Taxa taxa, int matrixNumber) {
+ 	public  MesquiteStringBuffer getDataAsFileText(MesquiteFile file, Taxa taxa, int matrixNumber) {
 
-		StringBuffer outputBuffer = new StringBuffer();
+ 		MesquiteStringBuffer outputBuffer = new MesquiteStringBuffer();
 		int numMatrices = getProject().getNumberCharMatrices(taxa);
 
 		boolean firstCategorical = true;
@@ -151,7 +151,7 @@ public class ExportFASTAByGene extends FileInterpreterI {
 
 							for (int ic = 0; ic<numChars; ic++) {
 								if (!writeOnlySelectedData || (data.getSelected(ic))){
-									int currentSize = outputBuffer.length();
+									long currentSize = outputBuffer.length();
 									boolean wroteMoreThanOneSymbol = false;
 									boolean wroteSymbol = false;
 									if (data.isUnassigned(ic, it) || (convertMultStateToMissing && isProtein && pData.isMultistateOrUncertainty(ic, it))){
@@ -223,7 +223,7 @@ public class ExportFASTAByGene extends FileInterpreterI {
 			path = getPathForExport(arguments,getProject().getHomeFileName(),null,null);
 		}
 		for (int im=0; im<numMatrices; im++) {		
-			StringBuffer outputBuffer = getDataAsFileText(file, taxa, im);
+			MesquiteStringBuffer outputBuffer = getDataAsFileText(file, taxa, im);
 
 			if (outputBuffer!=null && StringUtil.notEmpty(outputBuffer.toString())) {
 				CharacterData data = getProject().getCharacterMatrix(taxa, im);    //

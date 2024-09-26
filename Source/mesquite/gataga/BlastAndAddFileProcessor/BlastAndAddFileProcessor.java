@@ -137,7 +137,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 		if (data==null || blasterTask==null)
 			return false;
 		String sequenceName = data.getTaxa().getTaxonName(it);
-		StringBuffer sequence = new StringBuffer(data.getNumChars());
+		MesquiteStringBuffer sequence = new MesquiteStringBuffer(data.getNumChars());
 		for (int ic = 0; ic<=data.getNumChars(); ic++) {
 			data.statesIntoStringBuffer(ic, it, sequence, false, false, false);
 		}
@@ -179,13 +179,13 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean processFile(MesquiteFile file){
+	public int processFile(MesquiteFile file){
 		MesquiteProject proj = file.getProject();
 		if (proj == null)
-			return false;
+			return 2;
 		boolean success = false;
 		if (!queryOptions())
-			return false;
+			return 2;
 		for (int im = 0; im < proj.getNumberCharMatrices(file); im++){
 			CharacterData data = proj.getCharacterMatrix(file, im);
 			//Debugg.println checkCompatibility
@@ -246,8 +246,9 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 
 
 		}
-
-		return success;
+		if (success)
+			return 0;
+		return 1;
 	}
 	/*.................................................................................................................*/
 	public String getName() {

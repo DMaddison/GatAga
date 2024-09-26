@@ -67,9 +67,9 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean processFile(MesquiteFile file){
+	public int processFile(MesquiteFile file){
 		if (numTask==null)
-			return false;
+			return 2;
 		if (saveFile == null || okToInteractWithUser(CAN_PROCEED_ANYWAY, "Asking for file to save")){ //need to check if can proceed
 			
 			MesquiteFileDialog fdlg= new MesquiteFileDialog(containerOfModule(), "Output File for Numbers for Matrices", FileDialog.SAVE);
@@ -79,12 +79,12 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 			String directory=fdlg.getDirectory();
 			// fdlg.dispose();
 			if (StringUtil.blank(fileName) || StringUtil.blank(directory))
-				return false;
+				return 2;
 			saveFile = MesquiteFile.composePath(directory, fileName);
 			MesquiteFile.appendFileContents(saveFile, "file name" + numTask.getName() + StringUtil.lineEnding(), true);
 		}
 		if (saveFile == null)
-			return false;
+			return 2;
 		
 		MesquiteNumber result = new MesquiteNumber();
 		MesquiteString resultString = new MesquiteString("");
@@ -98,7 +98,7 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
     		sb.append(result.toString());
    		}
 		MesquiteFile.appendFileContents(saveFile, sb.toString() + StringUtil.lineEnding(), true);
-		return true;
+		return 0;
 
 	}
 	/*.................................................................................................................*/

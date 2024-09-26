@@ -109,7 +109,7 @@ public class SubsampleFastq extends UtilitiesAssistant {
 				MesquiteFile.putFileContents(fileToWrite[i].getPath(), "", true);
 			}
 
-			StringBuffer sb = new StringBuffer(1000);
+			MesquiteStringBuffer sb = new MesquiteStringBuffer(1000);
 
 			String[] line = new String[numFiles];
 			for (int i=0; i<numFiles; i++) {

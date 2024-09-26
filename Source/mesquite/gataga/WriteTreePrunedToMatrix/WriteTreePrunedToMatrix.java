@@ -58,19 +58,19 @@ public class WriteTreePrunedToMatrix extends FileProcessor {
    	}
 	/*.................................................................................................................*/
    	/** Called to alter file. */
-   	public boolean processFile(MesquiteFile file, MesquiteString notice){
+   	public int processFile(MesquiteFile file, MesquiteString notice){
    		if (notice == null)
-   			return false;
+   			return 2;
    		MesquiteProject proj = file.getProject();
    		if (proj == null)
-   			return false;
+   			return 2;
 		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Asking for tree")){ //need to check if can proceed
 			treeDescription = MesquiteString.queryString(containerOfModule(), "Tree to be saved as pruned", "Give the parenthesis notation (with taxon names) of the tree to be pruned", "");
 			if (StringUtil.blank(treeDescription))
-				return false;
+				return 2;
 			directoryPath = MesquiteFile.chooseDirectory("Where to save tree files?"); //MesquiteFile.saveFileAsDialog("Base name for files (files will be named <name>1.nex, <name>2.nex, etc.)", baseName);
 			if (StringUtil.blank(directoryPath))
-				return false;
+				return 2;
 		}
  		boolean success = false;
    		for (int im = 0; im < proj.getNumberCharMatrices(file); im++){
@@ -97,7 +97,7 @@ public class WriteTreePrunedToMatrix extends FileProcessor {
  			
    		}
    			
-   		return success;
+   		return 0;
    	}
 	/*.................................................................................................................*/
 	 public String getName() {

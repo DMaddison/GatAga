@@ -45,7 +45,7 @@ public class DeleteTaxaToMatchTargetList extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean processFile(MesquiteFile file){
+	public int processFile(MesquiteFile file){
 		if (targetList == null || okToInteractWithUser(CAN_PROCEED_ANYWAY, "Asking for target list")){ //need to check if can proceed
 			MesquiteString directoryName = new MesquiteString();
 			MesquiteString fileName = new MesquiteString();
@@ -60,7 +60,7 @@ public class DeleteTaxaToMatchTargetList extends FileProcessor {
 		if (targetList == null){
 			if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "No target list"))
 				alert("No Target List obtained");
-			return false;
+			return 2;
 		}
 		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "No target list"))
 			alert("Target List [taxon names in square brackets]: " + StringArray.toString(targetList));
@@ -83,7 +83,7 @@ public class DeleteTaxaToMatchTargetList extends FileProcessor {
 			if (deleted)
 				taxa.notifyListeners(this, new Notification(MesquiteListener.PARTS_DELETED));
 		}
-		return true;
+		return 0;
 
 	}
 	/*.................................................................................................................*/

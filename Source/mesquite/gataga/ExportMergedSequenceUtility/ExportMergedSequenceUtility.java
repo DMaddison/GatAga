@@ -67,7 +67,7 @@ public class ExportMergedSequenceUtility extends DataUtility {
 				states[ic] = CategoricalState.setUncertainty(states[ic], true);
 		}
 		
-		StringBuffer sb = new StringBuffer();
+		MesquiteStringBuffer sb = new MesquiteStringBuffer();
 		sb.append(">"+getProject().getHomeFileName()+" [Merged]"+StringUtil.lineEnding());
 		cData.statesIntoStringBufferCore(0, states,  sb,  false,  true,  true);
 		

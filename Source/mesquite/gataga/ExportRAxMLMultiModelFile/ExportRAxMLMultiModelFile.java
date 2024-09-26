@@ -93,7 +93,7 @@ public class ExportRAxMLMultiModelFile extends FileInterpreterI {
 		
 		CharacterData firstData = getProject().getCharacterMatrixVisible(0, MolecularState.class); 
 
-		StringBuffer outputBuffer = new StringBuffer();
+		MesquiteStringBuffer outputBuffer = new MesquiteStringBuffer();
 		outputBuffer.append(IOUtil.getMultipleModelRAxMLString(this, firstData, true));
 
 		if (outputBuffer!=null) {

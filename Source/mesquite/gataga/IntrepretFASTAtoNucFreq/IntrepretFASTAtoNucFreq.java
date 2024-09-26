@@ -402,7 +402,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 		long pos = 0;
 		StringArray accessionNumbers = new StringArray(maxHits);
 
-		StringBuffer sb = new StringBuffer(1000);
+		MesquiteStringBuffer sb = new MesquiteStringBuffer(1000);
 		if (file!=null)
 			file.readLine(sb);
 		else

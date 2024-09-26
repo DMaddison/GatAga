@@ -474,11 +474,11 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 	}
 	/*.................................................................................................................*/
 	/** Called to alter file. */
-	public boolean processFile(MesquiteFile file, MesquiteString result){
+	public int processFile(MesquiteFile file, MesquiteString result){
 		boolean usePrevious = false;
 		if (okToInteractWithUser(CAN_PROCEED_ANYWAY, "Querying about options")){ //need to check if can proceed
 			if (!queryOptions())
-				return false;
+				return 2;
 
 		}
 		else
@@ -487,10 +487,10 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 		FileCoordinator coord = getFileCoordinator();
 		exporterTask = (FileInterpreter)coord.findEmployeeWithName(exporterString);
 		if (exporterTask == null)
-			return false;
+			return 2;
 		Taxa taxa;
 		if (proj == null)
-			return false;
+			return 2;
 		getProject().incrementProjectWindowSuppression();
 		incrementMenuResetSuppression();
 		CompatibilityTest test = exporterTask.getCompatibilityTest();
@@ -544,12 +544,12 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 					tempDataFile.exporting =1;
 					if (data.getNumChars()  == 0){
 						MesquiteMessage.warnUser("Matrix to be written has no characters; it will not be written.  Name: " + data.getName() + " (type: " + data.getDataTypeName() + ")");
-						return false;
+						return 1;
 					}
 					CharacterData			newMatrix = data.cloneData();
 					if (newMatrix == null){
 						MesquiteMessage.warnUser("Matrix NOT successfully cloned for file saving: " + data.getName() + " (type: " + data.getDataTypeName() + "; " + data.getNumChars() + " characters)");
-						return false;
+						return 1;
 					}
 					newMatrix.setName(data.getName());
 
@@ -587,7 +587,7 @@ public class SaveMatrixMatchingCriterion extends FileProcessor implements TaxonF
 		getProject().decrementProjectWindowSuppression();
 		decrementMenuResetSuppression();
 
-		return true;
+		return 0;
 	}
 	
 
