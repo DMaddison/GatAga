@@ -103,7 +103,7 @@ public class CopyNumForMatrixToSimpleFile extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Put Number for Matrix into Simple File";
+		return "GATAGA - Put Number for Matrix into Simple File";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/

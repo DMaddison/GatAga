@@ -167,7 +167,7 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Split Sequence Blocks into Separate Taxa";
+		return "GATAGA - Split Sequence Blocks into Separate Taxa";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/

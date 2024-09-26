@@ -170,7 +170,7 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Top BLAST Hit Taxonomy";
+		return "GATAGA - Top BLAST Hit Taxonomy";
 	}
 	/*.................................................................................................................*/
 	public boolean isPrerelease(){

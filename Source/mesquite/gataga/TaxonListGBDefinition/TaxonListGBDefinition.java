@@ -106,7 +106,7 @@ public class TaxonListGBDefinition extends TaxonListAssistant {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Top BLAST Hit Definition";
+		return "GATAGA - Top BLAST Hit Definition";
 	}
 	/*.................................................................................................................*/
 	public boolean isPrerelease(){

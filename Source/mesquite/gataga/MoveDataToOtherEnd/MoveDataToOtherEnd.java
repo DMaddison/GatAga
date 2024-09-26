@@ -140,11 +140,11 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer implements AltererA
       	 }
   	/*.................................................................................................................*/
     	 public String getNameForMenuItem() {
-		return "Move Sequences To Other End";
+		return "GATAGA - Move Sequences To Other End";
    	 }
 	/*.................................................................................................................*/
     	 public String getName() {
-		return "Move Sequences To Other End";
+		return "GATAGA - Move Sequences To Other End";
    	 }
 	/*.................................................................................................................*/
  	/** returns an explanation of what the module does.*/

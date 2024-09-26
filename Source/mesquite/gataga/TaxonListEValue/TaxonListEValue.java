@@ -107,7 +107,7 @@ public class TaxonListEValue extends TaxonListAssistant {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Top BLAST Hit eValue";
+		return "GATAGA - Top BLAST Hit eValue";
 	}
 	/*.................................................................................................................*/
 	public boolean isPrerelease(){

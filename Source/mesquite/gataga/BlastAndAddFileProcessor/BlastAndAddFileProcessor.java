@@ -253,7 +253,7 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "BLAST and Add Top Hits";
+		return "GATAGA - BLAST and Add Top Hits";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/

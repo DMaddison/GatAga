@@ -24,7 +24,7 @@ public class SplitMatrices extends DataUtility {
 	CharacterData data;
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Split into Matrices";
+		return "GATAGA - Split into Matrices";
 	}
 
 	/*.................................................................................................................*/

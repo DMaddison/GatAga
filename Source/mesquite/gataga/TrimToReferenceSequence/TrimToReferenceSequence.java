@@ -64,7 +64,7 @@ public class TrimToReferenceSequence extends MolecularDataAlterer implements Alt
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Trim to Reference Sequence";
+		return "GATAGA - Trim to Reference Sequence";
 	}
 	/*.................................................................................................................*/
 	/** returns an explanation of what the module does.*/

@@ -244,7 +244,7 @@ public class ExportFASTAByGene extends FileInterpreterI {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Export FASTA by Gene All Matrices";
+		return "GATAGA - Export FASTA by Gene All Matrices";
 	}
 	/*.................................................................................................................*/
 

@@ -106,7 +106,7 @@ public class TaxonListBlastAccession extends TaxonListAssistant {
 	}
 	/*.................................................................................................................*/
 	public String getName() {
-		return "Top BLAST Hit Accession";
+		return "GATAGA - Top BLAST Hit Accession";
 	}
 	/*.................................................................................................................*/
 	public boolean isPrerelease(){
