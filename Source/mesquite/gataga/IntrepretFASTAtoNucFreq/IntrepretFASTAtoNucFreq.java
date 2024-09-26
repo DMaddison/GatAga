@@ -623,7 +623,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 								// IDs = NCBIUtil.getNucIDsFromProtIDs(IDs);
 							}
 
-							String fasta = blasterTask.getFastaFromIDs(IDs,true, fastaBLASTResults, 0);  // TODO : support multiple blast databases
+							String fasta = blasterTask.getFastaFromIDs(t.getName(), IDs,true, fastaBLASTResults, 0);  // TODO : support multiple blast databases
 							if (StringUtil.notEmpty(fasta)) {	
 								//Debugg.println(blastResult.reversedToString());
 								fastaBLASTResults.insert(0, ">"+sequenceName+"\n" + StringUtil.wrap(sequence.toString(), 60) + "\n");

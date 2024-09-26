@@ -228,7 +228,8 @@ public class BlastAndAddFileProcessor extends FileProcessor {
 							//String newSequencesAsFasta = NCBIUtil.fetchGenBankSequencesFromIDs(ID, data instanceof DNAData, this, true, report);	
 
 							StringBuffer blastResponse = new StringBuffer();
-							String newSequencesAsFasta = blasterTask.getFastaFromIDs(localID,  data instanceof DNAData, blastResponse, passNumber);
+							String newSequencesAsFasta = blasterTask.getFastaFromIDs(data.getTaxa().getTaxonName(it), localID,  data instanceof DNAData, blastResponse, passNumber);
+							//String newSequencesAsFasta = blasterTask.getFastaFromIDs(localID,  data instanceof DNAData, blastResponse, passNumber);
 
 							if (StringUtil.notEmpty(newSequencesAsFasta))
 								NCBIUtil.importFASTASequences(data, newSequencesAsFasta, this, report, -1, it, false, false);
