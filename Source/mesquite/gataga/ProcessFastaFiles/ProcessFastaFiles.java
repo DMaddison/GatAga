@@ -17,12 +17,11 @@ import mesquite.lib.*;
 
 import java.awt.Checkbox;
 
-import mesquite.dmanager.lib.*;
 
 
 
 /* ======================================================================== */
-public class ProcessFastaFiles extends ProcessDataFilesLib { 
+public class ProcessFastaFiles  { 
 	
 	/*.................................................................................................................*/
 	private void append(StringBuffer sb, int numTabs, String content) {
