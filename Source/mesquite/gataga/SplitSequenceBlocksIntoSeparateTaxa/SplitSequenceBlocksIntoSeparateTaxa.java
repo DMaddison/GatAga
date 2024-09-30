@@ -17,13 +17,13 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 
 	/*.................................................................................................................*/
 	/** Called to alter data in those cells selected in table*/
-	public boolean alterData(CharacterData dData, MesquiteTable table,  UndoReference undoReference){
+	public int alterData(CharacterData dData, MesquiteTable table,  UndoReference undoReference){
 		if (dData==null)
-			return false;
+			return -10;
 	
 		if (!(dData instanceof MolecularData)){
 			MesquiteMessage.warnProgrammer(getName() + " requires molecular sequence data");
-			return false;
+			return INCOMPATIBLE_DATA;
 		}
 		MolecularData data = (MolecularData)dData;
 
@@ -93,7 +93,9 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 				undoReference.setResponsibleModule(this);
 			}
 		}
-		return changed;
+		if (changed)
+			return SUCCEEDED;
+		return MEH;
 	}
 
 	/*.................................................................................................................*

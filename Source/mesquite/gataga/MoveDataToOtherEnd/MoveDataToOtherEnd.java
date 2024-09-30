@@ -40,9 +40,9 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer implements AltererA
    	
 	/*.................................................................................................................*/
    	/** Called to alter data in those cells selected in table*/
-   	public boolean alterData(CharacterData cData, MesquiteTable table,  UndoReference undoReference){
+   	public int alterData(CharacterData cData, MesquiteTable table,  UndoReference undoReference){
 		if (!(cData instanceof MolecularData))
-			return false;
+			return INCOMPATIBLE_DATA;
 		boolean found = false;
 		MolecularData data = (MolecularData)cData;
 
@@ -117,7 +117,9 @@ public class MoveDataToOtherEnd extends MolecularDataAlterer implements AltererA
 			data.notifyListeners(this, new Notification(MesquiteListener.DATA_CHANGED));
 			data.notifyInLinked(new Notification(MesquiteListener.DATA_CHANGED));
 		}
-		return found;
+		if (found)
+			return SUCCEEDED;
+		return MEH;
    	}
    	/*.................................................................................................................*/
   	 public boolean showCitation() {

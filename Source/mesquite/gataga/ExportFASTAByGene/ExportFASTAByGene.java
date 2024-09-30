@@ -228,6 +228,8 @@ public class ExportFASTAByGene extends FileInterpreterI {
 			if (outputBuffer!=null && StringUtil.notEmpty(outputBuffer.toString())) {
 				CharacterData data = getProject().getCharacterMatrix(taxa, im);    //
 				String fileName = StringUtil.removeCharacters(data.getName(),"/\\");
+				
+				//The arguments of the call below might be messed up! It seems as if fas is put into the wrong argument
 				saveExportedFileWithExtension(outputBuffer, arguments, data.getName(), "fas", path+"."+fileName + ".fas");
 				someExported=true;
 			}
