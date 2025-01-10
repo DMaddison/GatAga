@@ -9,6 +9,7 @@ import mesquite.lib.characters.*;
 import mesquite.lib.duties.MatrixSourceCoord;
 import mesquite.lib.*;
 import mesquite.lib.table.*;
+import mesquite.lib.taxa.Taxa;
 import mesquite.molec.lib.*;
 
 /* ======================================================================== */

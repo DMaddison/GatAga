@@ -6,6 +6,7 @@ import java.awt.FileDialog;
 import mesquite.lib.*;
 import mesquite.lib.characters.CharacterData;
 import mesquite.lib.duties.*;
+import mesquite.lib.ui.ColorTheme;
 import mesquite.molec.lib.Blaster;
 
 /* ======================================================================== */

@@ -11,6 +11,10 @@ import mesquite.lib.characters.*;
 import mesquite.lib.duties.MatrixSourceCoord;
 import mesquite.lib.*;
 import mesquite.lib.table.*;
+import mesquite.lib.taxa.Taxa;
+import mesquite.lib.ui.ExtensibleDialog;
+import mesquite.lib.ui.MesquiteMenuItemSpec;
+import mesquite.lib.ui.SingleLineTextField;
 import mesquite.molec.lib.*;
 
 /* ======================================================================== */

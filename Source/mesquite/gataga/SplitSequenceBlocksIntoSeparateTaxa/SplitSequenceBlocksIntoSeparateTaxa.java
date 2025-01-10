@@ -5,6 +5,7 @@ import mesquite.lib.*;
 import mesquite.lib.duties.*;
 import mesquite.lib.characters.*;
 import mesquite.lib.table.*;
+import mesquite.lib.taxa.Taxa;
 
 public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 	
