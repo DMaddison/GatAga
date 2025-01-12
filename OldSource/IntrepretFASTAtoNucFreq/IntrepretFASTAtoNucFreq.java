@@ -736,7 +736,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 			Taxa taxa = null;
 
 			if (taxa == null){
-				taxa = taxaTask.makeNewTaxa(getProject().getTaxas().getUniqueName("Taxa"), 0, false);
+				taxa = taxaTask.makeNewTaxaBlock(getProject().getTaxas().getUniqueName("Taxa"), 0, false);
 				taxa.addToFile(file, getProject(), taxaTask);
 			}
 			ContinuousData data = null;
