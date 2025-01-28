@@ -24,7 +24,7 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 	
 		if (!(dData instanceof MolecularData)){
 			MesquiteMessage.warnProgrammer(getName() + " requires molecular sequence data");
-			return INCOMPATIBLE_DATA;
+			return ResultCodes.INCOMPATIBLE_DATA;
 		}
 		MolecularData data = (MolecularData)dData;
 
@@ -95,8 +95,8 @@ public class SplitSequenceBlocksIntoSeparateTaxa extends MolecularDataAlterer {
 			}
 		}
 		if (changed)
-			return SUCCEEDED;
-		return MEH;
+			return ResultCodes.SUCCEEDED;
+		return ResultCodes.MEH;
 	}
 
 	/*.................................................................................................................*

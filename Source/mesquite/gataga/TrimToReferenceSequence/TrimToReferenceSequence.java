@@ -22,7 +22,7 @@ public class TrimToReferenceSequence extends MolecularDataAlterer implements Alt
 	
 		if (!(dData instanceof MolecularData)){
 			MesquiteMessage.warnProgrammer(getName() + " requires molecular sequence data");
-			return INCOMPATIBLE_DATA;
+			return ResultCodes.INCOMPATIBLE_DATA;
 		}
 		MolecularData data = (MolecularData)dData;
 
@@ -49,8 +49,8 @@ public class TrimToReferenceSequence extends MolecularDataAlterer implements Alt
 			}
 		}
 		if (changed)
-			return SUCCEEDED;
-		return MEH;
+			return ResultCodes.SUCCEEDED;
+		return ResultCodes.MEH;
 	}
 	/*.................................................................................................................*/
 	public void alterCell(CharacterData ddata, int ic, int it){
