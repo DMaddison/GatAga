@@ -603,8 +603,8 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 						Associable associable = data.getTaxaInfo(true);
 						associable.setAssociatedDouble(NCBIUtil.EVALUE, taxonNumber, blastResult.geteValue(0));
 						associable.setAssociatedDouble(NCBIUtil.BITSCORE, taxonNumber, blastResult.getBitScore(0));
-						associable.setAssociatedObject(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
-						associable.setAssociatedObject(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(0));
+						associable.setAssociatedString(NCBIUtil.DEFINITION, taxonNumber, blastResult.getDefinition(0));
+						associable.setAssociatedString(NCBIUtil.ACCESSION, taxonNumber, blastResult.getAccession(0));
 						sequenceNameSuffix = " [top hit: " + StringUtil.getItem(blastResult.getDefinition(0), "|",5) + ", eValue=" + blastResult.geteValue(0) +  "]";
 
 						fastaBLASTResults.setLength(0);
@@ -639,7 +639,7 @@ public class IntrepretFASTAtoNucFreq extends FileInterpreterI  implements ItemLi
 						if (fetchTaxonomy) {
 							String tax = blasterTask.getTaxonomyFromID(blastResult.getID(0), true, true, null);
 							if (StringUtil.notEmpty(tax))
-								associable.setAssociatedObject(NCBIUtil.TAXONOMY, taxonNumber, tax);
+								associable.setAssociatedString(NCBIUtil.TAXONOMY, taxonNumber, tax);
 						}
 					}
 					if (pathForBlastReport!=null){

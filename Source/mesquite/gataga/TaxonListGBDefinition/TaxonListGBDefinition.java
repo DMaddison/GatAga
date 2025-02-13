@@ -86,7 +86,7 @@ public class TaxonListGBDefinition extends TaxonListAssistant {
 			CharacterData data = observedStates.getParentData();
 			
 			Associable associable = data.getTaxaInfo(true);
-			String s = (String)associable.getAssociatedObject(NCBIUtil.DEFINITION, ic);
+			String s = (String)associable.getAssociatedString(NCBIUtil.DEFINITION, ic);
 			if (StringUtil.notEmpty(s))
 				return s;
 		}

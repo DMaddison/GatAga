@@ -95,7 +95,7 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 			return;
 		Associable associable = data.getTaxaInfo(true);
 		for (int it=0; it<data.getNumTaxa(); it++) {
-			String s = (String)associable.getAssociatedObject(NCBIUtil.TAXONOMY, it);
+			String s = (String)associable.getAssociatedString(NCBIUtil.TAXONOMY, it);
 			if (StringUtil.notEmpty(s)){
 				if (StringUtil.indexOf(s,searchWord, caseSensitive, wholeWord)>=0) {
 					table.selectRow(it);
@@ -149,7 +149,7 @@ public class TaxonListGBTaxonomy extends TaxonListAssistant {
 			data = observedStates.getParentData();
 			
 			Associable associable = data.getTaxaInfo(true);
-			String s = (String)associable.getAssociatedObject(NCBIUtil.TAXONOMY, ic);
+			String s = (String)associable.getAssociatedString(NCBIUtil.TAXONOMY, ic);
 			if (StringUtil.notEmpty(s))
 				return s;
 		}

@@ -86,7 +86,7 @@ public class TaxonListBlastAccession extends TaxonListAssistant {
 			CharacterData data = observedStates.getParentData();
 			
 			Associable associable = data.getTaxaInfo(true);
-			String s = (String)associable.getAssociatedObject(NCBIUtil.ACCESSION, ic);
+			String s = (String)associable.getAssociatedString(NCBIUtil.ACCESSION, ic);
 			if (StringUtil.notEmpty(s))
 				return s;
 		}
